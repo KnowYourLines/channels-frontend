@@ -6,12 +6,9 @@
 
 <script>
 import axios from "axios";
-// import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 export default {
   name: "HelloWorld",
-  props: {
-    msg: String,
-  },
   methods: {
     submit: function () {
       const message = this.$refs.input.value;
@@ -25,6 +22,14 @@ export default {
     },
   },
   created() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let room = urlParams.get("room");
+    if (!room) {
+      room = uuidv4();
+      let url = new URL(window.location.href);
+      url.searchParams.set("room", room);
+      window.location.href = url;
+    }
     const backendUrl = new URL(process.env.VUE_APP_BACKEND_URL);
     const ws_scheme = backendUrl.protocol == "https:" ? "wss" : "ws";
     const path =
@@ -33,7 +38,9 @@ export default {
       backendUrl.hostname +
       ":" +
       backendUrl.port +
-      "/ws/chat/helloworld/";
+      "/ws/chat/" +
+      room +
+      "/";
     this.socketRef = new WebSocket(path);
     axios
       .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
