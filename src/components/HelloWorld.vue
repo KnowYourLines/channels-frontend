@@ -1,4 +1,9 @@
 <template>
+  <div>
+    <button @click="googleSignIn">Sign In with Google</button>
+    <button @click="googleSignOut">Sign Out</button>
+  </div>
+  <br />
   <textarea ref="log" cols="100" rows="20"></textarea><br />
   <input ref="input" type="text" size="100" @keyup.enter="submit" /><br />
   <input ref="submit" type="button" value="Send" @click="submit" />
@@ -7,9 +12,64 @@
 <script>
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import firebase from "firebase";
 export default {
   name: "HelloWorld",
+  data() {
+    return {
+      user: uuidv4()
+    };
+  },
   methods: {
+    googleSignIn: function () {
+      let provider = new firebase.auth.GoogleAuthProvider();
+      const firebaseConfig = {
+        apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
+        authDomain: "channels-efc02.firebaseapp.com",
+        projectId: "channels-efc02",
+        storageBucket: "channels-efc02.appspot.com",
+        messagingSenderId: "874229818669",
+        appId: "1:874229818669:web:25e9c168b4319945125fa4",
+        measurementId: "G-T9ZBBM3GGF",
+      };
+      firebase
+        .initializeApp(firebaseConfig)
+        .auth()
+        .signInWithPopup(provider)
+        .then((result) => {
+          result.user.getIdToken().then((token) => {
+            axios.defaults.headers.common = {
+              Authorization: "Token " + token,
+            };
+            axios
+              .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
+              .then((response) => {
+                this.user = response.data["username"];
+              })
+              .catch(function (error) {
+                if (error.response) {
+                  console.log(error.response.data);
+                  console.log(error.response.status);
+                  console.log(error.response.headers);
+                }
+              });
+          });
+        })
+        .catch((err) => {
+          console.log(err); // This will give you all the information needed to further debug any errors
+        });
+    },
+    googleSignOut: function () {
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          alert("Successfully signed out.");
+        })
+        .catch((err) => {
+          console.log(err); // This will give you all the information needed to further debug any errors
+        });
+    },
     submit: function () {
       const message = this.$refs.input.value;
       this.socketRef.send(
@@ -42,18 +102,6 @@ export default {
       room +
       "/";
     this.socketRef = new WebSocket(path);
-    axios
-      .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
-      .then((response) => {
-        this.user = response.data["username"];
-      })
-      .catch(function (error) {
-        if (error.response) {
-          console.log(error.response.data);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        }
-      });
   },
   mounted() {
     this.$refs.input.focus();
