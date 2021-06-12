@@ -1,7 +1,7 @@
 <template>
   <div>
-    <button @click="googleSignIn">Sign In with Google</button>
-    <button @click="googleSignOut">Sign Out</button>
+    <section id="firebaseui-auth-container"></section>
+    <button @click="signOut">Sign Out</button>
   </div>
   <br />
   <textarea ref="log" cols="100" rows="20"></textarea><br />
@@ -13,57 +13,24 @@
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import firebase from "firebase";
+import * as firebaseui from "firebaseui";
+import "firebaseui/dist/firebaseui.css";
 export default {
   name: "HelloWorld",
   data() {
     return {
-      user: uuidv4()
+      anonUsername: uuidv4(),
+      username: this.anonUsername,
+      user: null,
     };
   },
   methods: {
-    googleSignIn: function () {
-      let provider = new firebase.auth.GoogleAuthProvider();
-      const firebaseConfig = {
-        apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
-        authDomain: "channels-efc02.firebaseapp.com",
-        projectId: "channels-efc02",
-        storageBucket: "channels-efc02.appspot.com",
-        messagingSenderId: "874229818669",
-        appId: "1:874229818669:web:25e9c168b4319945125fa4",
-        measurementId: "G-T9ZBBM3GGF",
-      };
-      firebase
-        .initializeApp(firebaseConfig)
-        .auth()
-        .signInWithPopup(provider)
-        .then((result) => {
-          result.user.getIdToken().then((token) => {
-            axios.defaults.headers.common = {
-              Authorization: "Token " + token,
-            };
-            axios
-              .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
-              .then((response) => {
-                this.user = response.data["username"];
-              })
-              .catch(function (error) {
-                if (error.response) {
-                  console.log(error.response.data);
-                  console.log(error.response.status);
-                  console.log(error.response.headers);
-                }
-              });
-          });
-        })
-        .catch((err) => {
-          console.log(err); // This will give you all the information needed to further debug any errors
-        });
-    },
-    googleSignOut: function () {
+    signOut: function () {
       firebase
         .auth()
         .signOut()
         .then(() => {
+          this.username = uuidv4()
           alert("Successfully signed out.");
         })
         .catch((err) => {
@@ -75,13 +42,14 @@ export default {
       this.socketRef.send(
         JSON.stringify({
           message: message,
-          user: this.user,
+          user: this.username,
         })
       );
       this.$refs.input.value = "";
     },
   },
-  created() {
+  mounted() {
+    this.$refs.input.focus();
     const urlParams = new URLSearchParams(window.location.search);
     let room = urlParams.get("room");
     if (!room) {
@@ -102,9 +70,6 @@ export default {
       room +
       "/";
     this.socketRef = new WebSocket(path);
-  },
-  mounted() {
-    this.$refs.input.focus();
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
       this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
@@ -113,13 +78,57 @@ export default {
       const data = JSON.parse(e.data);
       this.$refs.log.value += data.message + "\n";
     };
-
     this.socketRef.onerror = (e) => {
       console.log(e.message);
     };
     this.socketRef.onclose = () => {
       console.log("WebSocket closed let's reopen");
     };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
+      authDomain: "channels-efc02.firebaseapp.com",
+      projectId: "channels-efc02",
+      storageBucket: "channels-efc02.appspot.com",
+      messagingSenderId: "874229818669",
+      appId: "1:874229818669:web:25e9c168b4319945125fa4",
+      measurementId: "G-T9ZBBM3GGF",
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.auth().onAuthStateChanged((user) => {
+      console.log(user)
+      this.user = user;
+      if (user) {
+        user.getIdToken().then((token) => {
+          axios.defaults.headers.common = {
+            Authorization: "Token " + token,
+          };
+          axios
+            .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
+            .then((response) => {
+              this.username = response.data["username"];
+            })
+            .catch(function (error) {
+              if (error.response) {
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              }
+            });
+        });
+      } else {
+        this.username = this.anonUsername
+      }
+    });
+
+    let ui = firebaseui.auth.AuthUI.getInstance();
+    if (!ui) {
+      ui = new firebaseui.auth.AuthUI(firebase.auth());
+    }
+    let uiConfig = {
+      signInSuccessUrl: window.location.href,
+      signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.FacebookAuthProvider.PROVIDER_ID],
+    };
+    ui.start("#firebaseui-auth-container", uiConfig);
   },
 };
 </script>

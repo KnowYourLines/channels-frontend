@@ -11,6 +11,7 @@
     "axios": "^0.21.1",
     "core-js": "^3.14.0",
     "firebase": "^8.6.6",
+    "firebaseui": "^4.8.0",
     "vue": "^3.1.1"
   },
   "devDependencies": {
