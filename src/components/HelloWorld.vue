@@ -30,7 +30,7 @@ export default {
         .auth()
         .signOut()
         .then(() => {
-          this.username = uuidv4()
+          this.username = uuidv4();
           alert("Successfully signed out.");
         })
         .catch((err) => {
@@ -48,6 +48,63 @@ export default {
       this.$refs.input.value = "";
     },
   },
+  created() {
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
+      authDomain: "channels-efc02.firebaseapp.com",
+      projectId: "channels-efc02",
+      storageBucket: "channels-efc02.appspot.com",
+      messagingSenderId: "874229818669",
+      appId: "1:874229818669:web:25e9c168b4319945125fa4",
+      measurementId: "G-T9ZBBM3GGF",
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    firebase.auth().onAuthStateChanged((user) => {
+      console.log(user);
+      this.user = user;
+      if (user) {
+        user.getIdToken().then((token) => {
+          axios.defaults.headers.common = {
+            Authorization: "Token " + token,
+          };
+          axios
+            .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
+            .then((response) => {
+              this.username = response.data["username"];
+            })
+            .catch(function (error) {
+              if (error.response) {
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              }
+            });
+        });
+      } else {
+        this.username = this.anonUsername;
+      }
+    });
+    let ui = firebaseui.auth.AuthUI.getInstance();
+    if (!ui) {
+      ui = new firebaseui.auth.AuthUI(firebase.auth());
+    }
+    let uiConfig = {
+      signInSuccessUrl: window.location.href,
+      signInOptions: [
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+        {
+          provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          signInMethod:
+            firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
+        },
+      ],
+    };
+    ui.start("#firebaseui-auth-container", uiConfig);
+  },
+
   mounted() {
     this.$refs.input.focus();
     const urlParams = new URLSearchParams(window.location.search);
@@ -82,53 +139,9 @@ export default {
       console.log(e.message);
     };
     this.socketRef.onclose = () => {
-      console.log("WebSocket closed let's reopen");
+      console.log("WebSocket closed");
     };
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
-      authDomain: "channels-efc02.firebaseapp.com",
-      projectId: "channels-efc02",
-      storageBucket: "channels-efc02.appspot.com",
-      messagingSenderId: "874229818669",
-      appId: "1:874229818669:web:25e9c168b4319945125fa4",
-      measurementId: "G-T9ZBBM3GGF",
-    };
-    firebase.initializeApp(firebaseConfig);
-    firebase.auth().onAuthStateChanged((user) => {
-      console.log(user)
-      this.user = user;
-      if (user) {
-        user.getIdToken().then((token) => {
-          axios.defaults.headers.common = {
-            Authorization: "Token " + token,
-          };
-          axios
-            .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
-            .then((response) => {
-              this.username = response.data["username"];
-            })
-            .catch(function (error) {
-              if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-              }
-            });
-        });
-      } else {
-        this.username = this.anonUsername
-      }
-    });
 
-    let ui = firebaseui.auth.AuthUI.getInstance();
-    if (!ui) {
-      ui = new firebaseui.auth.AuthUI(firebase.auth());
-    }
-    let uiConfig = {
-      signInSuccessUrl: window.location.href,
-      signInOptions: [firebase.auth.GoogleAuthProvider.PROVIDER_ID, firebase.auth.FacebookAuthProvider.PROVIDER_ID],
-    };
-    ui.start("#firebaseui-auth-container", uiConfig);
   },
 };
 </script>
