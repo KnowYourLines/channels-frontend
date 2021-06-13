@@ -101,7 +101,6 @@ export default {
     this.socketRef.onclose = () => {
       console.log("WebSocket closed");
     };
-    firebase.auth().signInAnonymously();
     this.ui = firebaseui.auth.AuthUI.getInstance();
     if (!this.ui) {
       this.ui = new firebaseui.auth.AuthUI(firebase.auth());
