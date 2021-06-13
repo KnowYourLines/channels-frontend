@@ -10,7 +10,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import firebase from "firebase";
 import * as firebaseui from "firebaseui";
@@ -19,9 +18,7 @@ export default {
   name: "HelloWorld",
   data() {
     return {
-      anonUsername: uuidv4(),
-      username: this.anonUsername,
-      user: null,
+      username: null,
     };
   },
   methods: {
@@ -30,11 +27,12 @@ export default {
         .auth()
         .signOut()
         .then(() => {
-          this.username = uuidv4();
+          firebase.auth().signInAnonymously();
+          this.ui.start("#firebaseui-auth-container", this.uiConfig);
           alert("Successfully signed out.");
         })
         .catch((err) => {
-          console.log(err); // This will give you all the information needed to further debug any errors
+          console.log(err);
         });
     },
     submit: function () {
@@ -59,52 +57,14 @@ export default {
       measurementId: "G-T9ZBBM3GGF",
     };
     firebase.initializeApp(firebaseConfig);
-
     firebase.auth().onAuthStateChanged((user) => {
       console.log(user);
-      this.user = user;
       if (user) {
-        user.getIdToken().then((token) => {
-          axios.defaults.headers.common = {
-            Authorization: "Token " + token,
-          };
-          axios
-            .get(process.env.VUE_APP_BACKEND_URL + "/chat/username/")
-            .then((response) => {
-              this.username = response.data["username"];
-            })
-            .catch(function (error) {
-              if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-              }
-            });
-        });
-      } else {
-        this.username = this.anonUsername;
+        this.username =
+          user?.displayName || user?.email || user?.phoneNumber || user?.uid;
       }
     });
-    let ui = firebaseui.auth.AuthUI.getInstance();
-    if (!ui) {
-      ui = new firebaseui.auth.AuthUI(firebase.auth());
-    }
-    let uiConfig = {
-      signInSuccessUrl: window.location.href,
-      signInOptions: [
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-        {
-          provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-          signInMethod:
-            firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
-        },
-      ],
-    };
-    ui.start("#firebaseui-auth-container", uiConfig);
   },
-
   mounted() {
     this.$refs.input.focus();
     const urlParams = new URLSearchParams(window.location.search);
@@ -141,7 +101,44 @@ export default {
     this.socketRef.onclose = () => {
       console.log("WebSocket closed");
     };
-
+    firebase.auth().signInAnonymously();
+    this.ui = firebaseui.auth.AuthUI.getInstance();
+    if (!this.ui) {
+      this.ui = new firebaseui.auth.AuthUI(firebase.auth());
+    }
+    this.uiConfig = {
+      autoUpgradeAnonymousUsers: true,
+      signInSuccessUrl: window.location.href,
+      signInOptions: [
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+        {
+          provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+          signInMethod:
+            firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
+        },
+      ],
+      callbacks: {
+        // signInFailure callback must be provided to handle merge conflicts which
+        // occur when an existing credential is linked to an anonymous user.
+        signInFailure: function (error) {
+          // For merge conflicts, the error.code will be
+          // 'firebaseui/anonymous-upgrade-merge-conflict'.
+          if (error.code != "firebaseui/anonymous-upgrade-merge-conflict") {
+            return Promise.resolve();
+          }
+          // The credential the user tried to sign in with.
+          var cred = error.credential;
+          // Copy data from anonymous user to permanent user and delete anonymous
+          // user.
+          // ...
+          // Finish sign-in after data is copied.
+          return firebase.auth().signInWithCredential(cred);
+        },
+      },
+    };
+    this.ui.start("#firebaseui-auth-container", this.uiConfig);
   },
 };
 </script>
