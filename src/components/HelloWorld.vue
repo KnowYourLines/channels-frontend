@@ -48,13 +48,13 @@ export default {
   },
   created() {
     const firebaseConfig = {
-      apiKey: "AIzaSyDDEtNW4mCP6BqaegpNJZaFaepObxgwV-Q",
-      authDomain: "channels-efc02.firebaseapp.com",
-      projectId: "channels-efc02",
-      storageBucket: "channels-efc02.appspot.com",
-      messagingSenderId: "874229818669",
-      appId: "1:874229818669:web:25e9c168b4319945125fa4",
-      measurementId: "G-T9ZBBM3GGF",
+      apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+      authDomain: process.env.VUE_APP_AUTH_DOMAIN,
+      projectId: process.env.VUE_APP_PROJECT_ID,
+      storageBucket: process.env.VUE_APP_STORAGE_BUCKET,
+      messagingSenderId: process.env.VUE_APP_MESSAGING_SENDER_ID,
+      appId: process.env.VUE_APP_APP_ID,
+      measurementId: process.env.VUE_APP_MEASUREMENT_ID,
     };
     firebase.initializeApp(firebaseConfig);
     firebase.auth().onAuthStateChanged((user) => {
