@@ -137,7 +137,9 @@ export default {
         },
       },
     };
-    this.ui.start("#firebaseui-auth-container", this.uiConfig);
+    if (firebase.auth().currentUser.isAnonymous) {
+      this.ui.start("#firebaseui-auth-container", this.uiConfig);
+    }
   },
 };
 </script>
