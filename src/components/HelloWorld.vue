@@ -137,7 +137,7 @@ export default {
         },
       },
     };
-    if (firebase.auth().currentUser.isAnonymous) {
+    if (firebase.auth().currentUser == null || firebase.auth().currentUser.isAnonymous) {
       this.ui.start("#firebaseui-auth-container", this.uiConfig);
     }
   },
