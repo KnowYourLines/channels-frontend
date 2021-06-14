@@ -1,12 +1,17 @@
 <template>
   <div>
     <section id="firebaseui-auth-container"></section>
-    <button @click="signOut">Sign Out</button>
+    <button @click="signOut">Sign Out</button><br /><br />
+    <input type="text" autocomplete="on" v-model.lazy.trim="username" />
   </div>
-  <br />
+
   <textarea ref="log" cols="100" rows="20"></textarea><br />
-  <input ref="input" type="text" size="100" @keyup.enter="submit" /><br />
-  <input ref="submit" type="button" value="Send" @click="submit" />
+  <input ref="input" type="text" size="100" @keyup.enter="submit" /><input
+    ref="submit"
+    type="button"
+    value="Send"
+    @click="submit"
+  />
 </template>
 
 <script>
@@ -60,49 +65,20 @@ export default {
     firebase.auth().onAuthStateChanged((user) => {
       console.log(user);
       if (user) {
-        this.username =
-          user?.displayName || user?.email || user?.phoneNumber || user?.uid;
+        if (user.providerData[0]) {
+          this.username =
+            user.providerData[0].displayName ||
+            user.providerData[0].email ||
+            user.providerData[0].phoneNumber ||
+            user.providerData[0].uid;
+        } else {
+          this.username =
+            user.displayName || user.email || user.phoneNumber || user.uid;
+        }
       } else {
         firebase.auth().signInAnonymously();
       }
     });
-  },
-  mounted() {
-    this.$refs.input.focus();
-    const urlParams = new URLSearchParams(window.location.search);
-    let room = urlParams.get("room");
-    if (!room) {
-      room = uuidv4();
-      let url = new URL(window.location.href);
-      url.searchParams.set("room", room);
-      window.location.href = url;
-    }
-    const backendUrl = new URL(process.env.VUE_APP_BACKEND_URL);
-    const ws_scheme = backendUrl.protocol == "https:" ? "wss" : "ws";
-    const path =
-      ws_scheme +
-      "://" +
-      backendUrl.hostname +
-      ":" +
-      backendUrl.port +
-      "/ws/chat/" +
-      room +
-      "/";
-    this.socketRef = new WebSocket(path);
-    this.socketRef.onopen = () => {
-      console.log("WebSocket open");
-      this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
-    };
-    this.socketRef.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      this.$refs.log.value += data.message + "\n";
-    };
-    this.socketRef.onerror = (e) => {
-      console.log(e.message);
-    };
-    this.socketRef.onclose = () => {
-      console.log("WebSocket closed");
-    };
     this.ui = firebaseui.auth.AuthUI.getInstance();
     if (!this.ui) {
       this.ui = new firebaseui.auth.AuthUI(firebase.auth());
@@ -145,6 +121,43 @@ export default {
     ) {
       this.ui.start("#firebaseui-auth-container", this.uiConfig);
     }
+  },
+  mounted() {
+    this.$refs.input.focus();
+    const urlParams = new URLSearchParams(window.location.search);
+    let room = urlParams.get("room");
+    if (!room) {
+      room = uuidv4();
+      let url = new URL(window.location.href);
+      url.searchParams.set("room", room);
+      window.location.href = url;
+    }
+    const backendUrl = new URL(process.env.VUE_APP_BACKEND_URL);
+    const ws_scheme = backendUrl.protocol == "https:" ? "wss" : "ws";
+    const path =
+      ws_scheme +
+      "://" +
+      backendUrl.hostname +
+      ":" +
+      backendUrl.port +
+      "/ws/chat/" +
+      room +
+      "/";
+    this.socketRef = new WebSocket(path);
+    this.socketRef.onopen = () => {
+      console.log("WebSocket open");
+      this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+    };
+    this.socketRef.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      this.$refs.log.value += data.message + "\n";
+    };
+    this.socketRef.onerror = (e) => {
+      console.log(e.message);
+    };
+    this.socketRef.onclose = () => {
+      console.log("WebSocket closed");
+    };
   },
 };
 </script>
