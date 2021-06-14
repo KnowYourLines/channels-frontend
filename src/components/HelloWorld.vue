@@ -2,10 +2,11 @@
   <div>
     <section id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
+    Speaking as:
     <input type="text" autocomplete="on" v-model.lazy.trim="username" />
   </div>
 
-  <textarea ref="log" cols="100" rows="20"></textarea><br />
+  <textarea ref="log" cols="100" rows="20" readonly></textarea><br />
   <input ref="input" type="text" size="100" @keyup.enter="submit" /><input
     ref="submit"
     type="button"
@@ -15,6 +16,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import firebase from "firebase";
 import * as firebaseui from "firebaseui";
@@ -65,16 +67,54 @@ export default {
     firebase.auth().onAuthStateChanged((user) => {
       console.log(user);
       if (user) {
-        if (user.providerData[0]) {
-          this.username =
-            user.providerData[0].displayName ||
-            user.providerData[0].email ||
-            user.providerData[0].phoneNumber ||
-            user.providerData[0].uid;
-        } else {
-          this.username =
-            user.displayName || user.email || user.phoneNumber || user.uid;
-        }
+        user.getIdToken().then((token) => {
+          axios.defaults.headers.common = {
+            Authorization: "Token " + token,
+          };
+          axios
+            .get(process.env.VUE_APP_BACKEND_URL + "/chat/display_name/")
+            .then((response) => {
+              let displayName = response.data["display_name"];
+              if (user.providerData[0]) {
+                if (
+                  displayName === user.providerData[0].displayName ||
+                  displayName === user.providerData[0].email ||
+                  displayName === user.providerData[0].phoneNumber ||
+                  displayName === user.providerData[0].uid
+                ) {
+                  this.username =
+                    user.providerData[0].displayName ||
+                    user.providerData[0].email ||
+                    user.providerData[0].phoneNumber ||
+                    user.providerData[0].uid;
+                } else {
+                  this.username = displayName;
+                }
+              } else {
+                if (
+                  displayName === user.displayName ||
+                  displayName === user.email ||
+                  displayName === user.phoneNumber ||
+                  displayName === user.uid
+                ) {
+                  this.username =
+                    user.displayName ||
+                    user.email ||
+                    user.phoneNumber ||
+                    user.uid;
+                } else {
+                  this.username = displayName;
+                }
+              }
+            })
+            .catch(function (error) {
+              if (error.response) {
+                console.log(error.response.data);
+                console.log(error.response.status);
+                console.log(error.response.headers);
+              }
+            });
+        });
       } else {
         firebase.auth().signInAnonymously();
       }
