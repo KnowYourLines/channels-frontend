@@ -3,7 +3,12 @@
     <section id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
     Speaking as:
-    <input type="text" autocomplete="on" v-model.lazy.trim="username" />
+    <input
+      type="text"
+      autocomplete="on"
+      v-model.lazy.trim="username"
+      @keyup.enter="updateDisplayName"
+    />
   </div>
 
   <textarea ref="log" cols="100" rows="20" readonly></textarea><br />
@@ -26,6 +31,7 @@ export default {
   data() {
     return {
       username: null,
+      token: null,
     };
   },
   methods: {
@@ -40,6 +46,22 @@ export default {
         })
         .catch((err) => {
           console.log(err);
+        });
+    },
+    updateDisplayName: function () {
+      axios
+        .post(process.env.VUE_APP_BACKEND_URL + "/chat/display_name/", {
+          display_name: this.username,
+        })
+        .then(() => {
+          this.$refs.input.focus()
+        })
+        .catch(function (error) {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          }
         });
     },
     submit: function () {
@@ -68,8 +90,9 @@ export default {
       console.log(user);
       if (user) {
         user.getIdToken().then((token) => {
+          this.token = token;
           axios.defaults.headers.common = {
-            Authorization: "Token " + token,
+            Authorization: "Token " + this.token,
           };
           axios
             .get(process.env.VUE_APP_BACKEND_URL + "/chat/display_name/")
