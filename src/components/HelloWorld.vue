@@ -178,12 +178,6 @@ export default {
         },
       },
     };
-    if (
-      firebase.auth().currentUser == null ||
-      firebase.auth().currentUser.isAnonymous
-    ) {
-      this.ui.start("#firebaseui-auth-container", this.uiConfig);
-    }
   },
   mounted() {
     this.$refs.input.focus();
@@ -222,6 +216,14 @@ export default {
       console.log("WebSocket closed");
     };
   },
+  beforeUpdate() {
+    if (
+      firebase.auth().currentUser == null ||
+      firebase.auth().currentUser.isAnonymous
+    ) {
+      this.ui.start("#firebaseui-auth-container", this.uiConfig);
+    }
+  }
 };
 </script>
 
