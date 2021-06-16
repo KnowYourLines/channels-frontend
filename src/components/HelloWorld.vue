@@ -70,6 +70,7 @@ export default {
         JSON.stringify({
           message: message,
           user: this.username,
+          token: this.token
         })
       );
       this.$refs.input.value = "";
