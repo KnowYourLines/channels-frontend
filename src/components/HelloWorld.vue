@@ -21,7 +21,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import firebase from "firebase";
 import * as firebaseui from "firebaseui";
@@ -49,20 +48,11 @@ export default {
         });
     },
     updateDisplayName: function () {
-      axios
-        .post(process.env.VUE_APP_BACKEND_URL + "/chat/display_name/", {
-          display_name: this.username,
-        })
-        .then(() => {
-          this.$refs.input.focus()
-        })
-        .catch(function (error) {
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          }
-        });
+      this.socketRef.send(
+        JSON.stringify({ command: "update_display_name", name: this.username, token: this.token, })
+      );
+      this.socketRef.send(JSON.stringify({ command: "fetch_display_name", token: this.token, }));
+      this.$refs.input.focus()
     },
     submit: function () {
       const message = this.$refs.input.value;
@@ -70,7 +60,7 @@ export default {
         JSON.stringify({
           message: message,
           user: this.username,
-          token: this.token
+          token: this.token,
         })
       );
       this.$refs.input.value = "";
@@ -92,52 +82,7 @@ export default {
       if (user) {
         user.getIdToken().then((token) => {
           this.token = token;
-          axios.defaults.headers.common = {
-            Authorization: "Token " + this.token,
-          };
-          axios
-            .get(process.env.VUE_APP_BACKEND_URL + "/chat/display_name/")
-            .then((response) => {
-              let displayName = response.data["display_name"];
-              if (user.providerData[0]) {
-                if (
-                  displayName === user.providerData[0].displayName ||
-                  displayName === user.providerData[0].email ||
-                  displayName === user.providerData[0].phoneNumber ||
-                  displayName === user.providerData[0].uid
-                ) {
-                  this.username =
-                    user.providerData[0].displayName ||
-                    user.providerData[0].email ||
-                    user.providerData[0].phoneNumber ||
-                    user.providerData[0].uid;
-                } else {
-                  this.username = displayName;
-                }
-              } else {
-                if (
-                  displayName === user.displayName ||
-                  displayName === user.email ||
-                  displayName === user.phoneNumber ||
-                  displayName === user.uid
-                ) {
-                  this.username =
-                    user.displayName ||
-                    user.email ||
-                    user.phoneNumber ||
-                    user.uid;
-                } else {
-                  this.username = displayName;
-                }
-              }
-            })
-            .catch(function (error) {
-              if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-              }
-            });
+          this.socketRef.send(JSON.stringify({ command: "fetch_display_name", token: this.token }));
         });
       } else {
         firebase.auth().signInAnonymously();
@@ -208,7 +153,11 @@ export default {
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      this.$refs.log.value += data.message + "\n";
+      if (data.new_display_name) {
+        this.username = data.new_display_name;
+      } else {
+        this.$refs.log.value += data.message + "\n";
+      }
     };
     this.socketRef.onerror = (e) => {
       console.log(e.message);
@@ -224,7 +173,7 @@ export default {
     ) {
       this.ui.start("#firebaseui-auth-container", this.uiConfig);
     }
-  }
+  },
 };
 </script>
 
