@@ -49,10 +49,16 @@ export default {
     },
     updateDisplayName: function () {
       this.socketRef.send(
-        JSON.stringify({ command: "update_display_name", name: this.username, token: this.token, })
+        JSON.stringify({
+          command: "update_display_name",
+          name: this.username,
+          token: this.token,
+        })
       );
-      this.socketRef.send(JSON.stringify({ command: "fetch_display_name", token: this.token, }));
-      this.$refs.input.focus()
+      this.socketRef.send(
+        JSON.stringify({ command: "fetch_display_name", token: this.token })
+      );
+      this.$refs.input.focus();
     },
     submit: function () {
       const message = this.$refs.input.value;
@@ -82,7 +88,12 @@ export default {
       if (user) {
         user.getIdToken().then((token) => {
           this.token = token;
-          this.socketRef.send(JSON.stringify({ command: "fetch_display_name", token: this.token }));
+          this.socketRef.send(
+            JSON.stringify({ command: "join_room", token: this.token })
+          );
+          this.socketRef.send(
+            JSON.stringify({ command: "fetch_display_name", token: this.token })
+          );
         });
       } else {
         firebase.auth().signInAnonymously();
