@@ -166,51 +166,44 @@ export default {
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
       if (data.new_display_name) {
-        let displayName = data.new_display_name;
-        if (this.user.providerData[0]) {
-          if (
-            displayName === this.user.providerData[0].displayName ||
-            displayName === this.user.providerData[0].email ||
-            displayName === this.user.providerData[0].phoneNumber ||
-            displayName === this.user.providerData[0].uid
-          ) {
-            this.username =
-              this.user.providerData[0].displayName ||
-              this.user.providerData[0].email ||
-              this.user.providerData[0].phoneNumber ||
-              this.user.providerData[0].uid;
-
-            this.socketRef.send(
-              JSON.stringify({
-                command: "update_display_name",
-                name: this.username,
-                token: this.token,
-              })
-            );
-          }
-        } else if (
-          displayName === this.user.displayName ||
-          displayName === this.user.email ||
-          displayName === this.user.phoneNumber ||
-          displayName === this.user.uid
+        this.username = data.new_display_name;
+        if (
+          this.user.providerData[0] &&
+          (this.username === this.user.providerData[0].displayName ||
+            this.username === this.user.providerData[0].email ||
+            this.username === this.user.providerData[0].phoneNumber ||
+            this.username === this.user.providerData[0].uid)
         ) {
-          {
-            this.username =
-              this.user.displayName ||
-              this.user.email ||
-              this.user.phoneNumber ||
-              this.user.uid;
-
-            this.socketRef.send(
-              JSON.stringify({
-                command: "update_display_name",
-                name: this.username,
-                token: this.token,
-              })
-            );
-          }
-        } else {
-          this.username = displayName;
+          this.username =
+            this.user.providerData[0].displayName ||
+            this.user.providerData[0].email ||
+            this.user.providerData[0].phoneNumber ||
+            this.user.providerData[0].uid;
+          this.socketRef.send(
+            JSON.stringify({
+              command: "update_display_name",
+              name: this.username,
+              token: this.token,
+            })
+          );
+        } else if (
+          this.username === this.user.displayName ||
+          this.username === this.user.email ||
+          this.username === this.user.phoneNumber ||
+          this.username === this.user.uid
+        ) {
+          this.username =
+            this.user.displayName ||
+            this.user.email ||
+            this.user.phoneNumber ||
+            this.user.uid;
+          this.socketRef.send(
+            JSON.stringify({
+              command: "update_display_name",
+              name: this.username,
+              token: this.token,
+            })
+          );
         }
       } else {
         this.$refs.log.value += data.message + "\n";
