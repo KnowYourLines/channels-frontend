@@ -59,6 +59,7 @@ export default {
         JSON.stringify({ command: "fetch_display_name", token: this.token })
       );
       this.$refs.input.focus();
+      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
     },
     submit: function () {
       const message = this.$refs.input.value;
@@ -165,7 +166,11 @@ export default {
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.new_display_name) {
+      if (data.refresh_chat){
+          this.$refs.log.value = ''
+          this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+      }
+      else if (data.new_display_name) {
         this.username = data.new_display_name;
         if (
           this.user.providerData[0] &&
