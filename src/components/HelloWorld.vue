@@ -2,6 +2,13 @@
   <div>
     <section id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
+    Room name:
+    <input
+      type="text"
+      autocomplete="on"
+      v-model.lazy.trim="roomName"
+      @keyup.enter="updateRoomName"
+    />
     Speaking as:
     <input
       type="text"
@@ -31,6 +38,7 @@ export default {
     return {
       username: null,
       token: null,
+      roomName: null,
     };
   },
   methods: {
@@ -60,6 +68,16 @@ export default {
       );
       this.$refs.input.focus();
       this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
+    },
+    updateRoomName: function () {
+      this.socketRef.send(
+        JSON.stringify({
+          command: "update_room_name",
+          name: this.roomName,
+        })
+      );
+      this.$refs.input.focus();
+      this.socketRef.send(JSON.stringify({ command: "refresh_room_name" }));
     },
     submit: function () {
       const message = this.$refs.input.value;
@@ -163,14 +181,18 @@ export default {
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
       this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+      this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.refresh_chat){
-          this.$refs.log.value = ''
-          this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
-      }
-      else if (data.new_display_name) {
+      if (data.new_room_name) {
+        this.roomName = data.new_room_name;
+      } else if (data.refresh_room_name) {
+        this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
+      } else if (data.refresh_chat) {
+        this.$refs.log.value = "";
+        this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+      } else if (data.new_display_name) {
         this.username = data.new_display_name;
         if (
           this.user.providerData[0] &&
