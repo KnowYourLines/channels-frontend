@@ -2,6 +2,7 @@
   <div>
     <section id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
+    <button @click="share">Share</button><br /><br />
     Room name:
     <input
       type="text"
@@ -42,6 +43,12 @@ export default {
     };
   },
   methods: {
+    share: function () {
+      const shareData = {
+        url: window.location.href,
+      };
+      navigator.share(shareData);
+    },
     signOut: function () {
       firebase
         .auth()
