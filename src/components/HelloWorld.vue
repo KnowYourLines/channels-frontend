@@ -30,7 +30,7 @@
 import { v4 as uuidv4 } from "uuid";
 export default {
   name: "HelloWorld",
-  emits: ['socket-connected'],
+  emits: ["socket-connected"],
   props: {
     token: {
       type: String,
@@ -91,9 +91,7 @@ export default {
       this.$refs.input.value = "";
     },
   },
-  mounted() {
-    this.$refs.input.focus();
-    this.shareable = typeof navigator.share === "function";
+  beforeCreate() {
     const urlParams = new URLSearchParams(window.location.search);
     let room = urlParams.get("room");
     if (!room) {
@@ -114,6 +112,10 @@ export default {
       room +
       "/";
     this.socketRef = new WebSocket(path);
+  },
+  mounted() {
+    this.$refs.input.focus();
+    this.shareable = typeof navigator.share === "function";
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
       this.$emit("socket-connected", this.socketRef);

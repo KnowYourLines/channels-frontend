@@ -11,7 +11,7 @@ import * as firebaseui from "firebaseui";
 import "firebaseui/dist/firebaseui.css";
 export default {
   name: "SignIn",
-  emits: ['new-token', 'new-user'],
+  emits: ["new-token", "new-user"],
   props: {
     socketRef: {
       type: WebSocket,
@@ -21,7 +21,7 @@ export default {
   data() {
     return {
       token: null,
-      showSignIn: true
+      showSignIn: true,
     };
   },
   methods: {
@@ -31,9 +31,10 @@ export default {
         .signOut()
         .then(() => {
           firebase.auth().signInAnonymously();
-          this.showSignIn = true
+          this.showSignIn = true;
           this.$nextTick(() => {
-          this.ui.start("#firebaseui-auth-container", this.uiConfig);})
+            this.ui.start("#firebaseui-auth-container", this.uiConfig);
+          });
           alert("Successfully signed out.");
         })
         .catch((err) => {
@@ -41,7 +42,7 @@ export default {
         });
     },
   },
-  created() {
+  mounted() {
     const firebaseConfig = {
       apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
       authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
@@ -59,7 +60,7 @@ export default {
         this.$emit("new-user", this.user);
         user.getIdToken().then((token) => {
           this.token = token;
-          this.showSignIn = this.user.isAnonymous
+          this.showSignIn = this.user.isAnonymous;
           this.$emit("new-token", this.token);
           this.socketRef.send(
             JSON.stringify({ command: "join_room", token: this.token })
