@@ -1,7 +1,5 @@
 <template>
   <div>
-    <section id="firebaseui-auth-container"></section>
-    <button @click="signOut">Sign Out</button><br /><br />
     <button v-if="shareable" @click="share">Share</button><br /><br />
     Room name:
     <input
@@ -30,15 +28,22 @@
 
 <script>
 import { v4 as uuidv4 } from "uuid";
-import firebase from "firebase";
-import * as firebaseui from "firebaseui";
-import "firebaseui/dist/firebaseui.css";
 export default {
   name: "HelloWorld",
+  emits: ['socket-connected'],
+  props: {
+    token: {
+      type: String,
+      required: true,
+    },
+    user: {
+      type: Object,
+      required: true,
+    },
+  },
   data() {
     return {
       username: null,
-      token: null,
       roomName: null,
       shareable: null,
     };
@@ -49,19 +54,6 @@ export default {
         url: window.location.href,
       };
       navigator.share(shareData);
-    },
-    signOut: function () {
-      firebase
-        .auth()
-        .signOut()
-        .then(() => {
-          firebase.auth().signInAnonymously();
-          this.ui.start("#firebaseui-auth-container", this.uiConfig);
-          alert("Successfully signed out.");
-        })
-        .catch((err) => {
-          console.log(err);
-        });
     },
     updateDisplayName: function () {
       this.socketRef.send(
@@ -99,74 +91,9 @@ export default {
       this.$refs.input.value = "";
     },
   },
-  created() {
-    const firebaseConfig = {
-      apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
-      authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.VUE_APP_FIREBASE_APP_ID,
-      measurementId: process.env.VUE_APP_FIREBASE_MEASUREMENT_ID,
-    };
-    firebase.initializeApp(firebaseConfig);
-    firebase.auth().onAuthStateChanged((user) => {
-      console.log(user);
-      if (user) {
-        this.user = user;
-        user.getIdToken().then((token) => {
-          this.token = token;
-          this.socketRef.send(
-            JSON.stringify({ command: "join_room", token: this.token })
-          );
-          this.socketRef.send(
-            JSON.stringify({ command: "fetch_display_name", token: this.token })
-          );
-        });
-      } else {
-        firebase.auth().signInAnonymously();
-      }
-    });
-    this.ui = firebaseui.auth.AuthUI.getInstance();
-    if (!this.ui) {
-      this.ui = new firebaseui.auth.AuthUI(firebase.auth());
-    }
-    this.uiConfig = {
-      autoUpgradeAnonymousUsers: true,
-      signInSuccessUrl: window.location.href,
-      signInOptions: [
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-        firebase.auth.PhoneAuthProvider.PROVIDER_ID,
-        {
-          provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-          signInMethod:
-            firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD,
-        },
-      ],
-      callbacks: {
-        // signInFailure callback must be provided to handle merge conflicts which
-        // occur when an existing credential is linked to an anonymous user.
-        signInFailure: function (error) {
-          // For merge conflicts, the error.code will be
-          // 'firebaseui/anonymous-upgrade-merge-conflict'.
-          if (error.code != "firebaseui/anonymous-upgrade-merge-conflict") {
-            return Promise.resolve();
-          }
-          // The credential the user tried to sign in with.
-          var cred = error.credential;
-          // Copy data from anonymous user to permanent user and delete anonymous
-          // user.
-          // ...
-          // Finish sign-in after data is copied.
-          return firebase.auth().signInWithCredential(cred);
-        },
-      },
-    };
-  },
   mounted() {
     this.$refs.input.focus();
-    this.shareable = typeof navigator.share === "function"
+    this.shareable = typeof navigator.share === "function";
     const urlParams = new URLSearchParams(window.location.search);
     let room = urlParams.get("room");
     if (!room) {
@@ -189,6 +116,7 @@ export default {
     this.socketRef = new WebSocket(path);
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
+      this.$emit("socket-connected", this.socketRef);
       this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
       this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
     };
@@ -251,14 +179,6 @@ export default {
     this.socketRef.onclose = () => {
       console.log("WebSocket closed");
     };
-  },
-  beforeUpdate() {
-    if (
-      firebase.auth().currentUser == null ||
-      firebase.auth().currentUser.isAnonymous
-    ) {
-      this.ui.start("#firebaseui-auth-container", this.uiConfig);
-    }
   },
 };
 </script>
