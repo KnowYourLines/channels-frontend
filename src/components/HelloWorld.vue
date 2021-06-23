@@ -2,7 +2,7 @@
   <div>
     <section id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
-    <button @click="share">Share</button><br /><br />
+    <button v-if="shareable" @click="share">Share</button><br /><br />
     Room name:
     <input
       type="text"
@@ -40,6 +40,7 @@ export default {
       username: null,
       token: null,
       roomName: null,
+      shareable: null,
     };
   },
   methods: {
@@ -165,6 +166,7 @@ export default {
   },
   mounted() {
     this.$refs.input.focus();
+    this.shareable = typeof navigator.share === "function"
     const urlParams = new URLSearchParams(window.location.search);
     let room = urlParams.get("room");
     if (!room) {
