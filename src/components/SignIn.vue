@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section id="firebaseui-auth-container"></section>
+    <section v-if="showSignIn" id="firebaseui-auth-container"></section>
     <button @click="signOut">Sign Out</button><br /><br />
   </div>
 </template>
@@ -21,6 +21,7 @@ export default {
   data() {
     return {
       token: null,
+      showSignIn: true
     };
   },
   methods: {
@@ -30,7 +31,9 @@ export default {
         .signOut()
         .then(() => {
           firebase.auth().signInAnonymously();
-          this.ui.start("#firebaseui-auth-container", this.uiConfig);
+          this.showSignIn = true
+          this.$nextTick(() => {
+          this.ui.start("#firebaseui-auth-container", this.uiConfig);})
           alert("Successfully signed out.");
         })
         .catch((err) => {
@@ -56,6 +59,7 @@ export default {
         this.$emit("new-user", this.user);
         user.getIdToken().then((token) => {
           this.token = token;
+          this.showSignIn = this.user.isAnonymous
           this.$emit("new-token", this.token);
           this.socketRef.send(
             JSON.stringify({ command: "join_room", token: this.token })
@@ -110,7 +114,8 @@ export default {
       firebase.auth().currentUser == null ||
       firebase.auth().currentUser.isAnonymous
     ) {
-      this.ui.start("#firebaseui-auth-container", this.uiConfig);
+      this.$nextTick(() => {
+      this.ui.start("#firebaseui-auth-container", this.uiConfig);})
     }
   },
 };
