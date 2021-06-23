@@ -1,6 +1,6 @@
 <template>
   <SignIn @new-token="newToken" @new-user="newUser" :socketRef="socket" />
-  <HelloWorld @socket-connected="socketConnected" :token="token" :user="user" />
+  <HelloWorld @socket-created="socketCreated" :token="token" :user="user" />
 </template>
 
 <script>
@@ -21,7 +21,7 @@ export default {
     };
   },
   methods: {
-    socketConnected: function (socket) {
+    socketCreated: function (socket) {
       this.socket = socket;
     },
     newToken: function (token) {
