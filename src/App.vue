@@ -1,7 +1,9 @@
 <template>
   <LoadingScreen v-if="isLoading" />
-  <SignIn v-if="!isLoading" @new-token="newToken" @new-user="newUser" :socketRef="socket" />
-  <HelloWorld v-if="!isLoading" @socket-created="socketCreated" :token="token" :user="user" />
+  <div v-else>
+    <SignIn @new-token="newToken" @new-user="newUser" :socketRef="socket" />
+    <HelloWorld @socket-created="socketCreated" :token="token" :user="user" />
+  </div>
 </template>
 
 <script>
@@ -38,7 +40,7 @@ export default {
   mounted() {
     setTimeout(() => {
       this.isLoading = false;
-    }, 1000);
+    }, 1500);
   },
 };
 </script>
@@ -52,5 +54,4 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
-
 </style>

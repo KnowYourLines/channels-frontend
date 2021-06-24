@@ -124,9 +124,6 @@ export default {
       }
     });
     this.ui = firebaseui.auth.AuthUI.getInstance();
-    if (!this.ui) {
-      this.ui = new firebaseui.auth.AuthUI(firebase.auth());
-    }
     this.uiConfig = {
       autoUpgradeAnonymousUsers: true,
       signInSuccessUrl: window.location.href,
