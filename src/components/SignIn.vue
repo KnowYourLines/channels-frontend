@@ -62,7 +62,7 @@ export default {
           this.token = token;
           this.showSignIn = this.user.isAnonymous;
           this.$emit("new-token", this.token);
-          this.$nextTick(() => {
+          if (this.socketRef.readyState === 1) {
             this.socketRef.send(
               JSON.stringify({ command: "join_room", token: this.token })
             );
@@ -72,7 +72,22 @@ export default {
                 token: this.token,
               })
             );
-          });
+          } else {
+            setTimeout(
+              function () {
+                this.socketRef.send(
+                  JSON.stringify({ command: "join_room", token: this.token })
+                );
+                this.socketRef.send(
+                  JSON.stringify({
+                    command: "fetch_display_name",
+                    token: this.token,
+                  })
+                );
+              }.bind(this),
+              1000
+            );
+          }
         });
       } else {
         firebase.auth().signInAnonymously();
