@@ -68,10 +68,10 @@ export default {
             );
             if (
               this.user.providerData[0] &&
-              (this.username === this.user.providerData[0].displayName ||
-                this.username === this.user.providerData[0].email ||
-                this.username === this.user.providerData[0].phoneNumber ||
-                this.username === this.user.providerData[0].uid)
+              (this.user.providerData[0].displayName ||
+                this.user.providerData[0].email ||
+                this.user.providerData[0].phoneNumber ||
+                this.user.providerData[0].uid)
             ) {
               this.username =
                 this.user.providerData[0].displayName ||
@@ -100,10 +100,10 @@ export default {
                 );
                 if (
                   this.user.providerData[0] &&
-                  (this.username === this.user.providerData[0].displayName ||
-                    this.username === this.user.providerData[0].email ||
-                    this.username === this.user.providerData[0].phoneNumber ||
-                    this.username === this.user.providerData[0].uid)
+                  (this.user.providerData[0].displayName ||
+                    this.user.providerData[0].email ||
+                    this.user.providerData[0].phoneNumber ||
+                    this.user.providerData[0].uid)
                 ) {
                   this.username =
                     this.user.providerData[0].displayName ||
