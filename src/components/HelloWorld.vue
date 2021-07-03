@@ -141,7 +141,7 @@ export default {
     this.shareable = typeof navigator.share === "function";
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
-      this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+      this.socketRef.send(JSON.stringify({ command: "fetch_messages", token: this.token}));
       this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
     };
@@ -157,7 +157,7 @@ export default {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       } else if (data.refresh_chat) {
         this.$refs.log.value = "";
-        this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+        this.socketRef.send(JSON.stringify({ command: "fetch_messages", token: this.token}));
       } else if (data.new_display_name) {
         this.username = data.new_display_name;
         if (
