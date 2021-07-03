@@ -1,6 +1,13 @@
 <template>
   <div>
     <button v-if="shareable" @click="share">Share</button><br /><br />
+    <Toggle v-model="privateRoom" @change="updatePrivacy">
+      <template v-slot:label="{ checked, classList }">
+        <span :class="classList.label">{{
+          checked ? "Private" : "Public"
+        }}</span>
+      </template>
+    </Toggle>
     Room name:
     <input
       type="text"
@@ -28,8 +35,12 @@
 
 <script>
 import { v4 as uuidv4 } from "uuid";
+import Toggle from "@vueform/toggle";
 export default {
   name: "HelloWorld",
+  components: {
+    Toggle,
+  },
   emits: ["socket-created"],
   props: {
     token: {
@@ -46,6 +57,7 @@ export default {
       username: null,
       roomName: null,
       shareable: null,
+      privateRoom: false,
     };
   },
   methods: {
@@ -78,6 +90,16 @@ export default {
       );
       this.$refs.input.focus();
       this.socketRef.send(JSON.stringify({ command: "refresh_room_name" }));
+    },
+    updatePrivacy: function () {
+      this.socketRef.send(
+        JSON.stringify({
+          command: "update_privacy",
+          privacy: this.privateRoom,
+        })
+      );
+      this.$refs.input.focus();
+      this.socketRef.send(JSON.stringify({ command: "refresh_privacy" }));
     },
     submit: function () {
       const message = this.$refs.input.value;
@@ -121,10 +143,15 @@ export default {
       console.log("WebSocket open");
       this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
       this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
+      this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.new_room_name) {
+      if (data.privacy) {
+        this.privateRoom = data.privacy == "True" ? true : false;
+      } else if (data.refresh_privacy) {
+        this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+      } else if (data.new_room_name) {
         this.roomName = data.new_room_name;
       } else if (data.refresh_room_name) {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
@@ -184,21 +211,91 @@ export default {
   },
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
+<style >
+.toggle-container {
   display: inline-block;
-  margin: 0 10px;
 }
-a {
-  color: #42b983;
+.toggle-container:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--toggle-ring-width, 3px)
+    var(--toggle-ring-color, rgba(16, 185, 129, 0.18823529411764706));
 }
-</style>
+.toggle {
+  display: flex;
+  width: var(--toggle-width, 5rem);
+  height: var(--toggle-height, 1.25rem);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s;
+  align-items: center;
+  box-sizing: content-box;
+  border: var(--toggle-border, 0.125rem) solid;
+  font-size: var(--toggle-font-size, 1rem);
+  line-height: 1;
+}
+.toggle-on {
+  background: var(--toggle-bg-on, #10b981);
+  border-color: var(--toggle-border-on, #10b981);
+  justify-content: flex-start;
+  color: var(--toggle-text-on, #fff);
+}
+.toggle-off {
+  background: var(--toggle-bg-off, #e5e7eb);
+  border-color: var(--toggle-border-off, #e5e7eb);
+  justify-content: flex-end;
+  color: var(--toggle-text-off, #374151);
+}
+.toggle-on-disabled {
+  background: var(--toggle-bg-on-disabled, #d1d5db);
+  border-color: var(--toggle-border-on-disabled, #d1d5db);
+  justify-content: flex-start;
+  color: var(--toggle-text-on-disabled, #9ca3af);
+  cursor: not-allowed;
+}
+.toggle-off-disabled {
+  background: var(--toggle-bg-off-disabled, #e5e7eb);
+  border-color: var(--toggle-border-off-disabled, #e5e7eb);
+  justify-content: flex-end;
+  color: var(--toggle-text-off-disabled, #9ca3af);
+  cursor: not-allowed;
+}
+.toggle-handle {
+  display: inline-block;
+  background: var(--toggle-handle-enabled, #fff);
+  width: 20px;
+  height: 20px;
+  top: 0;
+  border-radius: 50%;
+  position: absolute;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: var(--toggle-duration, 0.15s);
+}
+.toggle-handle-on {
+  left: 100%;
+  transform: translateX(-100%);
+}
+.toggle-handle-off {
+  left: 0;
+}
+.toggle-handle-on-disabled {
+  left: 100%;
+  transform: translateX(-100%);
+  background: var(--toggle-handle-disabled, #f3f4f6);
+}
+.toggle-handle-off-disabled {
+  left: 0;
+  background: var(--toggle-handle-disabled, #f3f4f6);
+}
+.toggle-label {
+  text-align: center;
+  width: calc(var(--toggle-width, 5rem) - var(--toggle-height, 1.25rem));
+  box-sizing: border-box;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+</style> 
