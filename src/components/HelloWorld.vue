@@ -152,7 +152,7 @@ export default {
               JSON.stringify({ command: "fetch_messages", token: this.token })
             );
           }.bind(this),
-          2500
+          1000
         );
       } else {
         this.socketRef.send(
