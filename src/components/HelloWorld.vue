@@ -1,36 +1,39 @@
 <template>
-  <div>
-    <button v-if="shareable" @click="share">Share</button><br /><br />
-    <Toggle v-model="privateRoom" @change="updatePrivacy">
-      <template v-slot:label="{ checked, classList }">
-        <span :class="classList.label">{{
-          checked ? "Private" : "Public"
-        }}</span>
-      </template>
-    </Toggle>
-    Room name:
-    <input
-      type="text"
-      autocomplete="on"
-      v-model.lazy.trim="roomName"
-      @keyup.enter="updateRoomName"
-    />
-    Speaking as:
-    <input
-      type="text"
-      autocomplete="on"
-      v-model.lazy.trim="username"
-      @keyup.enter="updateDisplayName"
+  <div v-if="userAllowed">
+    <div>
+      <button v-if="shareable" @click="share">Share</button><br /><br />
+      <Toggle v-model="privateRoom" @change="updatePrivacy">
+        <template v-slot:label="{ checked, classList }">
+          <span :class="classList.label">{{
+            checked ? "Private" : "Public"
+          }}</span>
+        </template>
+      </Toggle>
+      Room name:
+      <input
+        type="text"
+        autocomplete="on"
+        v-model.lazy.trim="roomName"
+        @keyup.enter="updateRoomName"
+      />
+      Speaking as:
+      <input
+        type="text"
+        autocomplete="on"
+        v-model.lazy.trim="username"
+        @keyup.enter="updateDisplayName"
+      />
+    </div>
+
+    <textarea ref="log" cols="100" rows="20" readonly></textarea><br />
+    <input ref="input" type="text" size="100" @keyup.enter="submit" /><input
+      ref="submit"
+      type="button"
+      value="Send"
+      @click="submit"
     />
   </div>
-
-  <textarea ref="log" cols="100" rows="20" readonly></textarea><br />
-  <input ref="input" type="text" size="100" @keyup.enter="submit" /><input
-    ref="submit"
-    type="button"
-    value="Send"
-    @click="submit"
-  />
+  <div v-else>User not allowed in private room. Access requested.</div>
 </template>
 
 <script>
@@ -58,6 +61,7 @@ export default {
       roomName: null,
       shareable: null,
       privateRoom: false,
+      userAllowed: true,
     };
   },
   methods: {
@@ -141,13 +145,30 @@ export default {
     this.shareable = typeof navigator.share === "function";
     this.socketRef.onopen = () => {
       console.log("WebSocket open");
-      this.socketRef.send(JSON.stringify({ command: "fetch_messages", token: this.token}));
+      if (!this.token) {
+        setTimeout(
+          function () {
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_messages", token: this.token })
+            );
+          }.bind(this),
+          1000
+        );
+      } else {
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_messages", token: this.token })
+        );
+      }
       this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.privacy) {
+      if (data.allowed) {
+        this.userAllowed = true;
+      } else if (data.not_allowed) {
+        this.userAllowed = false;
+      } else if (data.privacy) {
         this.privateRoom = data.privacy == "True" ? true : false;
       } else if (data.refresh_privacy) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
@@ -157,7 +178,9 @@ export default {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       } else if (data.refresh_chat) {
         this.$refs.log.value = "";
-        this.socketRef.send(JSON.stringify({ command: "fetch_messages", token: this.token}));
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_messages", token: this.token })
+        );
       } else if (data.new_display_name) {
         this.username = data.new_display_name;
         if (

@@ -156,8 +156,6 @@ export default {
         },
       },
     };
-  },
-  beforeUpdate() {
     if (
       firebase.auth().currentUser == null ||
       firebase.auth().currentUser.isAnonymous
