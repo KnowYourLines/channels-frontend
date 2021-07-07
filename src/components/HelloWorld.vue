@@ -32,6 +32,7 @@
       value="Send"
       @click="submit"
     />
+    {{joinRequests}}
   </div>
   <div v-else>User not allowed in private room. Access requested.</div>
 </template>
@@ -62,6 +63,7 @@ export default {
       shareable: null,
       privateRoom: false,
       userAllowed: true,
+      joinRequests: null, 
     };
   },
   methods: {
@@ -161,10 +163,13 @@ export default {
       }
       this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+      this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.allowed) {
+      if (data.requests) {
+        this.joinRequests = JSON.parse(data.requests);
+      } else if (data.allowed) {
         this.userAllowed = true;
       } else if (data.not_allowed) {
         this.userAllowed = false;
