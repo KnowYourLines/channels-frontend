@@ -213,6 +213,8 @@ export default {
             JSON.stringify({ command: "fetch_join_requests" })
           );
         }
+      } else if (data.refresh_join_requests) {
+        this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
       } else if (data.refresh_privacy) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
       } else if (data.new_room_name) {
