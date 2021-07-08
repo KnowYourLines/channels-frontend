@@ -187,9 +187,6 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "fetch_messages", token: this.token })
             );
-            this.socketRef.send(
-              JSON.stringify({ command: "fetch_join_requests" })
-            );
             this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
             this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
           }.bind(this),
@@ -201,7 +198,6 @@ export default {
         );
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-        this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
       }
     };
     this.socketRef.onmessage = (e) => {
@@ -214,6 +210,9 @@ export default {
         this.userAllowed = false;
       } else if (data.privacy) {
         this.privateRoom = data.privacy == "True" ? true : false;
+        if (this.privateRoom){
+          this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
+        }
       } else if (data.refresh_privacy) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
       } else if (data.new_room_name) {
