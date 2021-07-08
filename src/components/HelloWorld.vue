@@ -1,38 +1,69 @@
 <template>
   <div v-if="userAllowed">
-    <div>
-      <button v-if="shareable" @click="share">Share</button><br /><br />
-      <Toggle v-model="privateRoom" @change="updatePrivacy">
-        <template v-slot:label="{ checked, classList }">
-          <span :class="classList.label">{{
-            checked ? "Private" : "Public"
-          }}</span>
-        </template>
-      </Toggle>
-      Room name:
-      <input
-        type="text"
-        autocomplete="on"
-        v-model.lazy.trim="roomName"
-        @keyup.enter="updateRoomName"
-      />
-      Speaking as:
-      <input
-        type="text"
-        autocomplete="on"
-        v-model.lazy.trim="username"
-        @keyup.enter="updateDisplayName"
-      />
+    <div class="row">
+      <div class="column">
+        <ul id="array-rendering"></ul>
+      </div>
+      <div class="column">
+        <div>
+          <button v-if="shareable" @click="share">Share</button><br /><br />
+          <Toggle v-model="privateRoom" @change="updatePrivacy">
+            <template v-slot:label="{ checked, classList }">
+              <span :class="classList.label">{{
+                checked ? "Private" : "Public"
+              }}</span>
+            </template>
+          </Toggle>
+          Room name:
+          <input
+            type="text"
+            autocomplete="on"
+            v-model.lazy.trim="roomName"
+            @keyup.enter="updateRoomName"
+          /><br />
+          Speaking as:
+          <input
+            type="text"
+            autocomplete="on"
+            v-model.lazy.trim="username"
+            @keyup.enter="updateDisplayName"
+          />
+        </div>
+        <textarea
+          class="textarea"
+          ref="log"
+          cols="100"
+          rows="20"
+          readonly
+        ></textarea
+        ><br />
+        <input ref="input" type="text" size="98" @keyup.enter="submit" /><input
+          ref="submit"
+          type="button"
+          value="Send"
+          @click="submit"
+        />
+      </div>
+      <div class="column">
+        <ul id="array-rendering">
+          <li v-for="request in joinRequests" :key="request.user">
+            {{ request.user__display_name }}
+            <div class="btn-group">
+              <button type="button" class="btn" @click="acceptRequest">
+                Accept
+              </button>
+              <button
+                type="submit"
+                class="btn btn__primary"
+                @click="rejectRequest"
+              >
+                Reject
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    <textarea ref="log" cols="100" rows="20" readonly></textarea><br />
-    <input ref="input" type="text" size="100" @keyup.enter="submit" /><input
-      ref="submit"
-      type="button"
-      value="Send"
-      @click="submit"
-    />
-    {{joinRequests}}
   </div>
   <div v-else>User not allowed in private room. Access requested.</div>
 </template>
@@ -63,7 +94,7 @@ export default {
       shareable: null,
       privateRoom: false,
       userAllowed: true,
-      joinRequests: null, 
+      joinRequests: null,
     };
   },
   methods: {
@@ -98,6 +129,9 @@ export default {
       this.socketRef.send(JSON.stringify({ command: "refresh_room_name" }));
     },
     updatePrivacy: function () {
+      if (!this.privateRoom) {
+        this.joinRequests = [];
+      }
       this.socketRef.send(
         JSON.stringify({
           command: "update_privacy",
@@ -153,6 +187,11 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "fetch_messages", token: this.token })
             );
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_join_requests" })
+            );
+            this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
+            this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
           }.bind(this),
           1000
         );
@@ -160,10 +199,10 @@ export default {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_messages", token: this.token })
         );
+        this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
+        this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+        this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
       }
-      this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-      this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-      this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
@@ -240,6 +279,20 @@ export default {
 };
 </script>
 <style >
+.column {
+  float: left;
+  width: 33.33%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+#array-rendering {
+  list-style-type: none;
+}
 .toggle-container {
   display: inline-block;
 }
