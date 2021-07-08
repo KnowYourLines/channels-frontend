@@ -1,71 +1,69 @@
 <template>
   <div v-if="userAllowed">
-    <div class="row">
-      <div class="column">
-        <ul id="array-rendering"></ul>
-      </div>
-      <div class="column">
-        <div>
-          <button v-if="shareable" @click="share">Share</button><br /><br />
-          <Toggle v-model="privateRoom" @change="updatePrivacy">
-            <template v-slot:label="{ checked, classList }">
-              <span :class="classList.label">{{
-                checked ? "Private" : "Public"
-              }}</span>
-            </template>
-          </Toggle>
-          Room name:
-          <input
-            type="text"
-            autocomplete="on"
-            v-model.lazy.trim="roomName"
-            @keyup.enter="updateRoomName"
-          /><br />
-          Speaking as:
-          <input
-            type="text"
-            autocomplete="on"
-            v-model.lazy.trim="username"
-            @keyup.enter="updateDisplayName"
-          />
-        </div>
-        <textarea
-          class="textarea"
-          ref="log"
-          cols="100"
-          rows="20"
-          readonly
-        ></textarea
-        ><br />
-        <input ref="input" type="text" size="98" @keyup.enter="submit" /><input
-          ref="submit"
-          type="button"
-          value="Send"
-          @click="submit"
-        />
-      </div>
-      <div class="column">
-        <ul id="array-rendering">
-          <li v-for="request in joinRequests" :key="request.user">
-            {{ request.user__display_name }}
-            <div class="btn-group">
-              <button type="button" class="btn" @click="acceptRequest">
-                Accept
-              </button>
-              <button
-                type="submit"
-                class="btn btn__primary"
-                @click="rejectRequest"
-              >
-                Reject
-              </button>
-            </div>
-          </li>
-        </ul>
-      </div>
+    <div class="column-left">Your chatrooms:</div>
+    <div class="column-center">
+      <button v-if="shareable" @click="share">Share</button><br /><br />
+      <Toggle v-model="privateRoom" @change="updatePrivacy">
+        <template v-slot:label="{ checked, classList }">
+          <span :class="classList.label">{{
+            checked ? "Private" : "Public"
+          }}</span>
+        </template>
+      </Toggle>
+      Room name:
+      <input
+        type="text"
+        autocomplete="on"
+        v-model.lazy.trim="roomName"
+        @keyup.enter="updateRoomName"
+      /><br />
+      Speaking as:
+      <input
+        type="text"
+        autocomplete="on"
+        v-model.lazy.trim="username"
+        @keyup.enter="updateDisplayName"
+      />
+      <textarea
+        class="textarea"
+        id="chat"
+        ref="log"
+        cols="100"
+        rows="20"
+        readonly
+      ></textarea
+      ><br />
+      <input id="message" ref="input" type="text" @keyup.enter="submit" /><input
+        ref="submit"
+        type="button"
+        value="Send"
+        @click="submit"
+      />
+    </div>
+    <div class="column-right">
+      <span v-if="privateRoom">Users requesting to join:</span>
+      <ul id="array-rendering">
+        <li v-for="request in joinRequests" :key="request.user">
+          {{ request.user__display_name }}
+          <div class="btn-group">
+            <button type="button" class="btn" @click="acceptRequest">
+              Accept
+            </button>
+            <button
+              type="submit"
+              class="btn btn__primary"
+              @click="rejectRequest"
+            >
+              Reject
+            </button>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
-  <div v-else>User not allowed in private room. Access requested.</div>
+  <div class="column-center" v-else>
+    User not allowed in private room. Access requested.
+  </div>
 </template>
 
 <script>
@@ -210,8 +208,10 @@ export default {
         this.userAllowed = false;
       } else if (data.privacy) {
         this.privateRoom = data.privacy == "True" ? true : false;
-        if (this.privateRoom){
-          this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
+        if (this.privateRoom) {
+          this.socketRef.send(
+            JSON.stringify({ command: "fetch_join_requests" })
+          );
         }
       } else if (data.refresh_privacy) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
@@ -278,16 +278,23 @@ export default {
 };
 </script>
 <style >
-.column {
+.column-left {
   float: left;
-  width: 33.33%;
+  width: 33.333%;
 }
-
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
+.column-right {
+  float: right;
+  width: 33.333%;
+}
+.column-center {
+  display: inline-block;
+  width: 33.333%;
+}
+#chat {
+  max-width: 100%;
+}
+#message {
+  width: 100%;
 }
 #array-rendering {
   list-style-type: none;
