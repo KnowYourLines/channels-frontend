@@ -56,7 +56,7 @@
             <button
               type="submit"
               class="btn btn__primary"
-              @click="rejectRequest"
+              @click="rejectRequest(request.user__username)"
             >
               Reject
             </button>
@@ -106,6 +106,11 @@ export default {
       );
       this.socketRef.send(
         JSON.stringify({ command: "refresh_allowed_status" })
+      );
+    },
+    rejectRequest: function (username) {
+      this.socketRef.send(
+        JSON.stringify({ command: "reject_user", username: username })
       );
     },
     share: function () {
