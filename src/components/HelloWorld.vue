@@ -147,6 +147,13 @@ export default {
     updatePrivacy: function () {
       if (!this.privateRoom) {
         this.joinRequests = [];
+        this.socketRef.send(
+        JSON.stringify({ command: "approve_all_users"})
+      );
+        this.socketRef.send(
+        JSON.stringify({ command: "refresh_allowed_status" })
+      );
+      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
       }
       this.socketRef.send(
         JSON.stringify({
