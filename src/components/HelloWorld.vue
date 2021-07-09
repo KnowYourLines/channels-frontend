@@ -46,7 +46,11 @@
         <li v-for="request in joinRequests" :key="request.user">
           {{ request.user__display_name }}
           <div class="btn-group">
-            <button type="button" class="btn" @click="acceptRequest">
+            <button
+              type="button"
+              class="btn"
+              @click="acceptRequest(request.user__username)"
+            >
               Accept
             </button>
             <button
@@ -96,6 +100,14 @@ export default {
     };
   },
   methods: {
+    acceptRequest: function (username) {
+      this.socketRef.send(
+        JSON.stringify({ command: "approve_user", username: username })
+      );
+      this.socketRef.send(
+        JSON.stringify({ command: "refresh_allowed_status" })
+      );
+    },
     share: function () {
       const shareData = {
         url: window.location.href,
@@ -202,6 +214,12 @@ export default {
       const data = JSON.parse(e.data);
       if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
+      } else if (data.refresh_allowed_status) {
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_allowed_status", token: this.token })
+        );
+        this.$refs.log.value = "";
+        this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
       } else if (data.allowed) {
         this.userAllowed = true;
       } else if (data.not_allowed) {
