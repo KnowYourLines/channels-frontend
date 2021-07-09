@@ -107,6 +107,7 @@ export default {
       this.socketRef.send(
         JSON.stringify({ command: "refresh_allowed_status" })
       );
+      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
     },
     rejectRequest: function (username) {
       this.socketRef.send(
@@ -223,8 +224,6 @@ export default {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_allowed_status", token: this.token })
         );
-        this.$refs.log.value = "";
-        this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
       } else if (data.allowed) {
         this.userAllowed = true;
       } else if (data.not_allowed) {
@@ -245,7 +244,9 @@ export default {
       } else if (data.refresh_room_name) {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
       } else if (data.refresh_chat) {
-        this.$refs.log.value = "";
+        if (this.$refs.log) {
+          this.$refs.log.value = "";
+        }
         this.socketRef.send(
           JSON.stringify({ command: "fetch_messages", token: this.token })
         );
