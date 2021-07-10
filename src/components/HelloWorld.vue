@@ -1,6 +1,6 @@
 <template>
   <div v-if="userAllowed">
-    <div class="column-left">Your other chatrooms: {{ notifications }}</div>
+    <div class="column-left">Your chatrooms: {{ notifications }}</div>
     <div class="column-center">
       <button v-if="shareable" @click="share">Share</button><br /><br />
       <Toggle v-model="privateRoom" @change="updatePrivacy">
