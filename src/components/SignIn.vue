@@ -56,6 +56,9 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "join_room", token: this.token })
             );
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_user_notifications" })
+            );
             if (
               this.user.providerData[0] &&
               (this.user.providerData[0].displayName ||
@@ -87,6 +90,9 @@ export default {
               function () {
                 this.socketRef.send(
                   JSON.stringify({ command: "join_room", token: this.token })
+                );
+                this.socketRef.send(
+                  JSON.stringify({ command: "fetch_user_notifications" })
                 );
                 if (
                   this.user.providerData[0] &&

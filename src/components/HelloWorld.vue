@@ -1,6 +1,6 @@
 <template>
   <div v-if="userAllowed">
-    <div class="column-left">Your chatrooms:</div>
+    <div class="column-left">Your other chatrooms: {{ notifications }}</div>
     <div class="column-center">
       <button v-if="shareable" @click="share">Share</button><br /><br />
       <Toggle v-model="privateRoom" @change="updatePrivacy">
@@ -97,6 +97,7 @@ export default {
       privateRoom: false,
       userAllowed: true,
       joinRequests: null,
+      notifications: null,
     };
   },
   methods: {
@@ -210,6 +211,9 @@ export default {
             );
             this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
             this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_user_notifications" })
+            );
           }.bind(this),
           1000
         );
@@ -219,17 +223,21 @@ export default {
         );
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_user_notifications" })
+        );
       }
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.requests) {
+      if (data.notifications) {
+        this.notifications = JSON.parse(data.notifications);
+      } else if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
       } else if (data.refresh_notifications) {
-        // this.socketRef.send(
-        //   JSON.stringify({ command: "fetch_notifications", token: this.token })
-        // );
-        console.log('fetch notifications please')
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_user_notifications" })
+        );
       } else if (data.refresh_allowed_status) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_allowed_status", token: this.token })
