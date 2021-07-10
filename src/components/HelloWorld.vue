@@ -147,13 +147,11 @@ export default {
     updatePrivacy: function () {
       if (!this.privateRoom) {
         this.joinRequests = [];
+        this.socketRef.send(JSON.stringify({ command: "approve_all_users" }));
         this.socketRef.send(
-        JSON.stringify({ command: "approve_all_users"})
-      );
-        this.socketRef.send(
-        JSON.stringify({ command: "refresh_allowed_status" })
-      );
-      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
+          JSON.stringify({ command: "refresh_allowed_status" })
+        );
+        this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
       }
       this.socketRef.send(
         JSON.stringify({
@@ -227,6 +225,11 @@ export default {
       const data = JSON.parse(e.data);
       if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
+      } else if (data.refresh_notifications) {
+        // this.socketRef.send(
+        //   JSON.stringify({ command: "fetch_notifications", token: this.token })
+        // );
+        console.log('fetch notifications please')
       } else if (data.refresh_allowed_status) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_allowed_status", token: this.token })
