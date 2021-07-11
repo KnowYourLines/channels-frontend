@@ -150,6 +150,11 @@ export default {
     };
   },
   methods: {
+    visitRoom: function (room) {
+      let url = new URL(window.location.href);
+      url.searchParams.set("room", room);
+      window.location.href = url;
+    },
     acceptRequest: function (username) {
       this.socketRef.send(
         JSON.stringify({ command: "approve_user", username: username })
