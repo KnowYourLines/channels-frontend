@@ -12,10 +12,12 @@
             >
               {{ notification.room__display_name }}</button
             ><br />
-            {{ notification.message__user__display_name }} :
-            {{ notification.message__content }}<br />{{
-              notification.timestamp
-            }}
+            <span v-if="notification.message__user__display_name">
+              {{ notification.message__user__display_name }} :
+              {{ notification.message__content }}</span
+            >
+            <span v-else> New user has joined</span>
+            <br />{{ notification.timestamp }}
             <br />
             <button
               type="submit"
@@ -33,8 +35,11 @@
             >
               {{ notification.room__display_name }}</button
             ><br />
-            {{ notification.message__user__display_name }} :
-            {{ notification.message__content }}<br />{{
+            <span v-if="notification.message__user__display_name">
+              {{ notification.message__user__display_name }} :
+              {{ notification.message__content }}</span
+            >
+            <span v-else> New user has joined</span><br />{{
               notification.timestamp
             }}
             <br />
