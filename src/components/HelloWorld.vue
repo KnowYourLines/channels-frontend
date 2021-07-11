@@ -4,16 +4,19 @@
       <span>Your chatrooms:</span>
       <ul id="array-rendering">
         <li v-for="notification in notifications" :key="notification.room">
-          <div class="btn-group">
+          <div v-if="notification.read" class="read-notification">
             <button
               type="button"
               class="btn"
               @click="visitRoom(notification.room)"
             >
-              {{ notification.room__display_name }}
-            </button><br/>
-            {{ notification.message__user__display_name }} : {{notification.message__content}} {{notification.timestamp}}
-            <br/>
+              {{ notification.room__display_name }}</button
+            ><br />
+            {{ notification.message__user__display_name }} :
+            {{ notification.message__content }}<br />{{
+              notification.timestamp
+            }}
+            <br />
             <button
               type="submit"
               class="btn btn__primary"
@@ -22,7 +25,28 @@
               Exit room
             </button>
           </div>
-          <br/>
+          <div v-else class="unread-notification">
+            <button
+              type="button"
+              class="btn"
+              @click="visitRoom(notification.room)"
+            >
+              {{ notification.room__display_name }}</button
+            ><br />
+            {{ notification.message__user__display_name }} :
+            {{ notification.message__content }}<br />{{
+              notification.timestamp
+            }}
+            <br />
+            <button
+              type="submit"
+              class="btn btn__primary"
+              @click="exitRoom(notification.room)"
+            >
+              Exit room
+            </button>
+          </div>
+          <br />
         </li>
       </ul>
     </div>
@@ -347,6 +371,9 @@ export default {
 };
 </script>
 <style >
+.unread-notification {
+  background-color: #5dbeff;
+}
 .column-left {
   float: left;
   width: 33.333%;
