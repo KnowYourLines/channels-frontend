@@ -1,6 +1,31 @@
 <template>
   <div v-if="userAllowed">
-    <div class="column-left">Your chatrooms: {{ notifications }}</div>
+    <div class="column-left">
+      <span>Your chatrooms:</span>
+      <ul id="array-rendering">
+        <li v-for="notification in notifications" :key="notification.room">
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn"
+              @click="visitRoom(notification.room)"
+            >
+              {{ notification.room__display_name }}
+            </button><br/>
+            {{ notification.message__user__display_name }} : {{notification.message__content}} {{notification.timestamp}}
+            <br/>
+            <button
+              type="submit"
+              class="btn btn__primary"
+              @click="exitRoom(notification.room)"
+            >
+              Exit room
+            </button>
+          </div>
+          <br/>
+        </li>
+      </ul>
+    </div>
     <div class="column-center">
       <button v-if="shareable" @click="share">Share</button><br /><br />
       <Toggle v-model="privateRoom" @change="updatePrivacy">
