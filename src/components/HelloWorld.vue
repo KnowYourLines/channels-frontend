@@ -19,6 +19,8 @@
             <span v-if="notification.user_joined__display_name">
               {{ notification.user_joined__display_name }} has joined the
               chat</span
+            ><span v-if="notification.user_left__display_name">
+              {{ notification.user_left__display_name }} has left the chat</span
             >
             <br />{{ notification.timestamp }}
             <br />
@@ -45,6 +47,8 @@
             <span v-if="notification.user_joined__display_name">
               {{ notification.user_joined__display_name }} has joined the
               chat</span
+            ><span v-if="notification.user_left__display_name">
+              {{ notification.user_left__display_name }} has left the chat</span
             ><br />{{ notification.timestamp }}
             <br />
             <button
@@ -163,6 +167,16 @@ export default {
       let url = new URL(window.location.href);
       url.searchParams.set("room", room);
       window.location.href = url;
+    },
+    exitRoom: function (room) {
+      this.socketRef.send(
+        JSON.stringify({ command: "exit_room", room_id: room })
+      );
+      const urlParams = new URLSearchParams(window.location.search);
+      let currentRoom = urlParams.get("room");
+      if (room == currentRoom) {
+        window.location.href = window.location.href.split("?")[0];
+      }
     },
     acceptRequest: function (username) {
       this.socketRef.send(
@@ -295,7 +309,6 @@ export default {
       const data = JSON.parse(e.data);
       if (data.notifications) {
         this.notifications = JSON.parse(data.notifications);
-        console.log(this.notifications)
       } else if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
       } else if (data.refresh_notifications) {
