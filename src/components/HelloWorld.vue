@@ -16,7 +16,10 @@
               {{ notification.message__user__display_name }} :
               {{ notification.message__content }}</span
             >
-            <span v-else> New user has joined</span>
+            <span v-if="notification.user_joined__display_name">
+              {{ notification.user_joined__display_name }} has joined the
+              chat</span
+            >
             <br />{{ notification.timestamp }}
             <br />
             <button
@@ -39,9 +42,10 @@
               {{ notification.message__user__display_name }} :
               {{ notification.message__content }}</span
             >
-            <span v-else> New user has joined</span><br />{{
-              notification.timestamp
-            }}
+            <span v-if="notification.user_joined__display_name">
+              {{ notification.user_joined__display_name }} has joined the
+              chat</span
+            ><br />{{ notification.timestamp }}
             <br />
             <button
               type="submit"
@@ -291,6 +295,7 @@ export default {
       const data = JSON.parse(e.data);
       if (data.notifications) {
         this.notifications = JSON.parse(data.notifications);
+        console.log(this.notifications)
       } else if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
       } else if (data.refresh_notifications) {
