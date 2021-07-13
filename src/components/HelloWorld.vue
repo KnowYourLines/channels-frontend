@@ -65,6 +65,7 @@
     </div>
     <div class="column-center">
       <button v-if="shareable" @click="share">Share</button><br /><br />
+      <button @click="createNewRoom">New room</button><br /><br />
       <Toggle v-model="privateRoom" @change="updatePrivacy">
         <template v-slot:label="{ checked, classList }">
           <span :class="classList.label">{{
@@ -177,6 +178,9 @@ export default {
       if (room == currentRoom) {
         window.location.href = window.location.href.split("?")[0];
       }
+    },
+    createNewRoom: function () {
+      window.location.href = window.location.href.split("?")[0];
     },
     acceptRequest: function (username) {
       this.socketRef.send(
