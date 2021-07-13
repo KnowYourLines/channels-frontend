@@ -104,6 +104,12 @@
       />
     </div>
     <div class="column-right">
+      Room members:
+      <ul id="array-rendering">
+        <li v-for="member in roomMembers" :key="member.display_name">
+          {{ member.display_name }}
+        </li>
+      </ul>
       <span v-if="privateRoom">Users requesting to join:</span>
       <ul id="array-rendering">
         <li v-for="request in joinRequests" :key="request.user">
@@ -161,6 +167,7 @@ export default {
       userAllowed: true,
       joinRequests: null,
       notifications: null,
+      roomMembers: null,
     };
   },
   methods: {
@@ -295,6 +302,7 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "fetch_user_notifications" })
             );
+            this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
           }.bind(this),
           1000
         );
@@ -307,11 +315,16 @@ export default {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_user_notifications" })
         );
+        this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
       }
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.notifications) {
+      if (data.members) {
+        this.roomMembers = JSON.parse(data.members);
+      } else if (data.refresh_members) {
+        this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+      } else if (data.notifications) {
         this.notifications = JSON.parse(data.notifications);
       } else if (data.requests) {
         this.joinRequests = JSON.parse(data.requests);
