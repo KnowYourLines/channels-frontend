@@ -59,32 +59,6 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "fetch_user_notifications" })
             );
-            if (
-              this.user.providerData[0] &&
-              (this.user.providerData[0].displayName ||
-                this.user.providerData[0].email ||
-                this.user.providerData[0].phoneNumber ||
-                this.user.providerData[0].uid)
-            ) {
-              this.username =
-                this.user.providerData[0].displayName ||
-                this.user.providerData[0].email ||
-                this.user.providerData[0].phoneNumber ||
-                this.user.providerData[0].uid;
-              this.socketRef.send(
-                JSON.stringify({
-                  command: "update_display_name",
-                  name: this.username,
-                  token: this.token,
-                })
-              );
-            }
-            this.socketRef.send(
-              JSON.stringify({
-                command: "fetch_display_name",
-                token: this.token,
-              })
-            );
           } else {
             setTimeout(
               function () {
@@ -93,32 +67,6 @@ export default {
                 );
                 this.socketRef.send(
                   JSON.stringify({ command: "fetch_user_notifications" })
-                );
-                if (
-                  this.user.providerData[0] &&
-                  (this.user.providerData[0].displayName ||
-                    this.user.providerData[0].email ||
-                    this.user.providerData[0].phoneNumber ||
-                    this.user.providerData[0].uid)
-                ) {
-                  this.username =
-                    this.user.providerData[0].displayName ||
-                    this.user.providerData[0].email ||
-                    this.user.providerData[0].phoneNumber ||
-                    this.user.providerData[0].uid;
-                  this.socketRef.send(
-                    JSON.stringify({
-                      command: "update_display_name",
-                      name: this.username,
-                      token: this.token,
-                    })
-                  );
-                }
-                this.socketRef.send(
-                  JSON.stringify({
-                    command: "fetch_display_name",
-                    token: this.token,
-                  })
                 );
               }.bind(this),
               1000

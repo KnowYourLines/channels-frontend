@@ -303,6 +303,12 @@ export default {
               JSON.stringify({ command: "fetch_user_notifications" })
             );
             this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+            this.socketRef.send(
+              JSON.stringify({
+                command: "fetch_display_name",
+                token: this.token,
+              })
+            );
           }.bind(this),
           1000
         );
@@ -316,6 +322,9 @@ export default {
           JSON.stringify({ command: "fetch_user_notifications" })
         );
         this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+        this.socketRef.send(
+          JSON.stringify({ command: "fetch_display_name", token: this.token })
+        );
       }
     };
     this.socketRef.onmessage = (e) => {
