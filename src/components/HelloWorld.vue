@@ -221,7 +221,6 @@ export default {
         JSON.stringify({ command: "fetch_display_name", token: this.token })
       );
       this.$refs.input.focus();
-      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
     },
     updateRoomName: function () {
       this.socketRef.send(
