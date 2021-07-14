@@ -193,10 +193,6 @@ export default {
       this.socketRef.send(
         JSON.stringify({ command: "approve_user", username: username })
       );
-      this.socketRef.send(
-        JSON.stringify({ command: "refresh_allowed_status" })
-      );
-      this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
     },
     rejectRequest: function (username) {
       this.socketRef.send(
@@ -230,16 +226,11 @@ export default {
         })
       );
       this.$refs.input.focus();
-      this.socketRef.send(JSON.stringify({ command: "refresh_room_name" }));
     },
     updatePrivacy: function () {
       if (!this.privateRoom) {
         this.joinRequests = [];
         this.socketRef.send(JSON.stringify({ command: "approve_all_users" }));
-        this.socketRef.send(
-          JSON.stringify({ command: "refresh_allowed_status" })
-        );
-        this.socketRef.send(JSON.stringify({ command: "refresh_chat" }));
       }
       this.socketRef.send(
         JSON.stringify({
@@ -248,7 +239,6 @@ export default {
         })
       );
       this.$refs.input.focus();
-      this.socketRef.send(JSON.stringify({ command: "refresh_privacy" }));
     },
     submit: function () {
       const message = this.$refs.input.value;
