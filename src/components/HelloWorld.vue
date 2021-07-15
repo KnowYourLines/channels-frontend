@@ -318,49 +318,49 @@ export default {
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.members) {
+      if ('members' in data) {
         this.roomMembers = JSON.parse(data.members);
-      } else if (data.refresh_members) {
+      } else if ('refresh_members' in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-      } else if (data.notifications) {
+      } else if ('notifications' in data) {
         this.notifications = JSON.parse(data.notifications);
-      } else if (data.requests) {
+      } else if ('requests' in data) {
         this.joinRequests = JSON.parse(data.requests);
-      } else if (data.refresh_notifications) {
+      } else if ('refresh_notifications' in data) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_user_notifications" })
         );
-      } else if (data.refresh_allowed_status) {
+      } else if ('refresh_allowed_status' in data) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_allowed_status", token: this.token })
         );
-      } else if (data.allowed) {
+      } else if ('allowed' in data) {
         this.userAllowed = true;
-      } else if (data.not_allowed) {
+      } else if ('not_allowed' in data) {
         this.userAllowed = false;
-      } else if (data.privacy) {
-        this.privateRoom = data.privacy == "True" ? true : false;
+      } else if ('privacy' in data) {
+        this.privateRoom = data.privacy;
         if (this.privateRoom) {
           this.socketRef.send(
             JSON.stringify({ command: "fetch_join_requests" })
           );
         }
-      } else if (data.refresh_join_requests) {
+      } else if ('refresh_join_requests' in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
-      } else if (data.refresh_privacy) {
+      } else if ('refresh_privacy' in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-      } else if (data.new_room_name) {
+      } else if ('new_room_name' in data) {
         this.roomName = data.new_room_name;
-      } else if (data.refresh_room_name) {
+      } else if ('refresh_room_name' in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-      } else if (data.refresh_chat) {
+      } else if ('refresh_chat' in data) {
         if (this.$refs.log) {
           this.$refs.log.value = "";
         }
         this.socketRef.send(
           JSON.stringify({ command: "fetch_messages", token: this.token })
         );
-      } else if (data.new_display_name) {
+      } else if ('new_display_name' in data) {
         this.username = data.new_display_name;
         if (
           this.user.providerData[0] &&
