@@ -44,34 +44,7 @@
       />
     </div>
     <div class="column-right">
-      Room members:
-      <ul id="array-rendering">
-        <li v-for="member in roomMembers" :key="member.display_name">
-          {{ member.display_name }}
-        </li>
-      </ul>
-      <span v-if="privateRoom">Users requesting to join:</span>
-      <ul id="array-rendering">
-        <li v-for="request in joinRequests" :key="request.user">
-          {{ request.user__display_name }}
-          <div class="btn-group">
-            <button
-              type="button"
-              class="btn"
-              @click="acceptRequest(request.user__username)"
-            >
-              Accept
-            </button>
-            <button
-              type="submit"
-              class="btn btn__primary"
-              @click="rejectRequest(request.user__username)"
-            >
-              Reject
-            </button>
-          </div>
-        </li>
-      </ul>
+      <ChatMembers :roomMembers="roomMembers" :privateRoom="privateRoom" :joinRequests="joinRequests" :socketRef="socketRef" />
     </div>
   </div>
   <div class="column-center" v-else>
@@ -83,11 +56,13 @@
 import { v4 as uuidv4 } from "uuid";
 import Toggle from "@vueform/toggle";
 import ChatHistory from "./ChatHistory.vue"
+import ChatMembers from "./ChatMembers.vue"
 export default {
   name: "Chat",
   components: {
     Toggle,
-    ChatHistory
+    ChatHistory,
+    ChatMembers
   },
   emits: ["socket-created"],
   props: {
@@ -115,16 +90,6 @@ export default {
   methods: {
     createNewRoom: function () {
       window.location.href = window.location.href.split("?")[0];
-    },
-    acceptRequest: function (username) {
-      this.socketRef.send(
-        JSON.stringify({ command: "approve_user", username: username })
-      );
-    },
-    rejectRequest: function (username) {
-      this.socketRef.send(
-        JSON.stringify({ command: "reject_user", username: username })
-      );
     },
     share: function () {
       const shareData = {

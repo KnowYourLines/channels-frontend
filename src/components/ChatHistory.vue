@@ -87,4 +87,7 @@ export default {
 .unread-notification {
   background-color: #5dbeff;
 }
+#array-rendering {
+  list-style-type: none;
+}
 </style>
