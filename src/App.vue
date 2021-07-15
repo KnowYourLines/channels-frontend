@@ -2,19 +2,19 @@
   <LoadingScreen v-if="isLoading" />
   <div v-else>
     <SignIn @new-token="newToken" @new-user="newUser" :socketRef="socket" />
-    <HelloWorld @socket-created="socketCreated" :token="token" :user="user" />
+    <Chat @socket-created="socketCreated" :token="token" :user="user" />
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import Chat from "./components/Chat.vue";
 import SignIn from "./components/SignIn.vue";
 import LoadingScreen from "./components/LoadingScreen.vue";
 
 export default {
   name: "App",
   components: {
-    HelloWorld,
+    Chat,
     SignIn,
     LoadingScreen,
   },

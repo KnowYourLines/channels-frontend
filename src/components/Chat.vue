@@ -143,7 +143,7 @@
 import { v4 as uuidv4 } from "uuid";
 import Toggle from "@vueform/toggle";
 export default {
-  name: "HelloWorld",
+  name: "Chat",
   components: {
     Toggle,
   },
