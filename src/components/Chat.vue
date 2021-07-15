@@ -44,7 +44,12 @@
       />
     </div>
     <div class="column-right">
-      <ChatMembers :roomMembers="roomMembers" :privateRoom="privateRoom" :joinRequests="joinRequests" :socketRef="socketRef" />
+      <ChatMembers
+        :roomMembers="roomMembers"
+        :privateRoom="privateRoom"
+        :joinRequests="joinRequests"
+        :socketRef="socketRef"
+      />
     </div>
   </div>
   <div class="column-center" v-else>
@@ -55,14 +60,14 @@
 <script>
 import { v4 as uuidv4 } from "uuid";
 import Toggle from "@vueform/toggle";
-import ChatHistory from "./ChatHistory.vue"
-import ChatMembers from "./ChatMembers.vue"
+import ChatHistory from "./ChatHistory.vue";
+import ChatMembers from "./ChatMembers.vue";
 export default {
   name: "Chat",
   components: {
     Toggle,
     ChatHistory,
-    ChatMembers
+    ChatMembers,
   },
   emits: ["socket-created"],
   props: {
@@ -82,9 +87,9 @@ export default {
       shareable: null,
       privateRoom: false,
       userAllowed: true,
-      joinRequests: null,
-      notifications: null,
-      roomMembers: null,
+      joinRequests: [],
+      notifications: [],
+      roomMembers: [],
     };
   },
   methods: {
@@ -210,49 +215,49 @@ export default {
     };
     this.socketRef.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if ('members' in data) {
+      if ("members" in data) {
         this.roomMembers = JSON.parse(data.members);
-      } else if ('refresh_members' in data) {
+      } else if ("refresh_members" in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-      } else if ('notifications' in data) {
+      } else if ("notifications" in data) {
         this.notifications = JSON.parse(data.notifications);
-      } else if ('requests' in data) {
+      } else if ("requests" in data) {
         this.joinRequests = JSON.parse(data.requests);
-      } else if ('refresh_notifications' in data) {
+      } else if ("refresh_notifications" in data) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_user_notifications" })
         );
-      } else if ('refresh_allowed_status' in data) {
+      } else if ("refresh_allowed_status" in data) {
         this.socketRef.send(
           JSON.stringify({ command: "fetch_allowed_status", token: this.token })
         );
-      } else if ('allowed' in data) {
+      } else if ("allowed" in data) {
         this.userAllowed = true;
-      } else if ('not_allowed' in data) {
+      } else if ("not_allowed" in data) {
         this.userAllowed = false;
-      } else if ('privacy' in data) {
+      } else if ("privacy" in data) {
         this.privateRoom = data.privacy;
         if (this.privateRoom) {
           this.socketRef.send(
             JSON.stringify({ command: "fetch_join_requests" })
           );
         }
-      } else if ('refresh_join_requests' in data) {
+      } else if ("refresh_join_requests" in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
-      } else if ('refresh_privacy' in data) {
+      } else if ("refresh_privacy" in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-      } else if ('new_room_name' in data) {
+      } else if ("new_room_name" in data) {
         this.roomName = data.new_room_name;
-      } else if ('refresh_room_name' in data) {
+      } else if ("refresh_room_name" in data) {
         this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-      } else if ('refresh_chat' in data) {
+      } else if ("refresh_chat" in data) {
         if (this.$refs.log) {
           this.$refs.log.value = "";
         }
         this.socketRef.send(
           JSON.stringify({ command: "fetch_messages", token: this.token })
         );
-      } else if ('new_display_name' in data) {
+      } else if ("new_display_name" in data) {
         this.username = data.new_display_name;
         if (
           this.user.providerData[0] &&

@@ -64,9 +64,6 @@ export default {
 };
 </script>
 <style >
-.unread-notification {
-  background-color: #5dbeff;
-}
 #array-rendering {
   list-style-type: none;
 }
