@@ -30,7 +30,6 @@ export default {
         .auth()
         .signOut()
         .then(() => {
-          // firebase.auth().signInAnonymously();
           this.showSignIn = true;
           this.$nextTick(() => {
             this.ui.start("#firebaseui-auth-container", this.uiConfig);
