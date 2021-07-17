@@ -279,6 +279,29 @@ export default {
             })
           );
         } else if (
+          this.user.providerData[0] &&
+          (this.username === this.user.displayName ||
+            this.username === this.user.email ||
+            this.username === this.user.phoneNumber ||
+            this.username === this.user.uid)
+        ) {
+          this.username =
+            this.user.providerData[0].displayName ||
+            this.user.displayName ||
+            this.user.providerData[0].email ||
+            this.user.email ||
+            this.user.providerData[0].phoneNumber ||
+            this.user.phoneNumber ||
+            this.user.providerData[0].uid ||
+            this.user.uid;
+          this.socketRef.send(
+            JSON.stringify({
+              command: "update_display_name",
+              name: this.username,
+              token: this.token,
+            })
+          );
+        } else if (
           this.username === this.user.displayName ||
           this.username === this.user.email ||
           this.username === this.user.phoneNumber ||

@@ -59,6 +59,12 @@ export default {
             this.socketRef.send(
               JSON.stringify({ command: "fetch_user_notifications" })
             );
+            this.socketRef.send(
+              JSON.stringify({
+                command: "fetch_display_name",
+                token: this.token,
+              })
+            );
           } else {
             setTimeout(
               function () {
@@ -67,6 +73,12 @@ export default {
                 );
                 this.socketRef.send(
                   JSON.stringify({ command: "fetch_user_notifications" })
+                );
+                this.socketRef.send(
+                  JSON.stringify({
+                    command: "fetch_display_name",
+                    token: this.token,
+                  })
                 );
               }.bind(this),
               1000
