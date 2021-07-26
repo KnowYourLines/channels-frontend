@@ -61,7 +61,6 @@ export default {
             this.socketRef.send(
               JSON.stringify({
                 command: "fetch_display_name",
-                token: this.token,
               })
             );
           } else {
@@ -76,7 +75,6 @@ export default {
                 this.socketRef.send(
                   JSON.stringify({
                     command: "fetch_display_name",
-                    token: this.token,
                   })
                 );
               }.bind(this),

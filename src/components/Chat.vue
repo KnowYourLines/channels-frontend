@@ -106,12 +106,11 @@ export default {
       this.socketRef.send(
         JSON.stringify({
           command: "update_display_name",
-          name: this.username,
-          token: this.token,
+          name: this.username
         })
       );
       this.socketRef.send(
-        JSON.stringify({ command: "fetch_display_name", token: this.token })
+        JSON.stringify({ command: "fetch_display_name" })
       );
       this.$refs.input.focus();
     },
@@ -142,8 +141,7 @@ export default {
       this.socketRef.send(
         JSON.stringify({
           message: message,
-          user: this.username,
-          token: this.token,
+          user: this.username
         })
       );
       this.$refs.input.value = "";
@@ -191,8 +189,7 @@ export default {
             this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
             this.socketRef.send(
               JSON.stringify({
-                command: "fetch_display_name",
-                token: this.token,
+                command: "fetch_display_name"
               })
             );
           }.bind(this),
@@ -209,7 +206,7 @@ export default {
         );
         this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
         this.socketRef.send(
-          JSON.stringify({ command: "fetch_display_name", token: this.token })
+          JSON.stringify({ command: "fetch_display_name" })
         );
       }
     };
@@ -274,8 +271,7 @@ export default {
           this.socketRef.send(
             JSON.stringify({
               command: "update_display_name",
-              name: this.username,
-              token: this.token,
+              name: this.username
             })
           );
         } else if (
@@ -297,8 +293,7 @@ export default {
           this.socketRef.send(
             JSON.stringify({
               command: "update_display_name",
-              name: this.username,
-              token: this.token,
+              name: this.username
             })
           );
         } else if (
@@ -315,8 +310,7 @@ export default {
           this.socketRef.send(
             JSON.stringify({
               command: "update_display_name",
-              name: this.username,
-              token: this.token,
+              name: this.username
             })
           );
         }
