@@ -90,6 +90,7 @@ export default {
       joinRequests: [],
       notifications: [],
       roomMembers: [],
+      socketRef: null,
     };
   },
   methods: {
@@ -106,12 +107,10 @@ export default {
       this.socketRef.send(
         JSON.stringify({
           command: "update_display_name",
-          name: this.username
+          name: this.username,
         })
       );
-      this.socketRef.send(
-        JSON.stringify({ command: "fetch_display_name" })
-      );
+      this.socketRef.send(JSON.stringify({ command: "fetch_display_name" }));
       this.$refs.input.focus();
     },
     updateRoomName: function () {
@@ -141,7 +140,7 @@ export default {
       this.socketRef.send(
         JSON.stringify({
           message: message,
-          user: this.username
+          user: this.username,
         })
       );
       this.$refs.input.value = "";
@@ -158,172 +157,196 @@ export default {
     }
     const backendUrl = new URL(process.env.VUE_APP_BACKEND_URL);
     const ws_scheme = backendUrl.protocol == "https:" ? "wss" : "ws";
-    const path =
-      ws_scheme +
-      "://" +
-      backendUrl.hostname +
-      ":" +
-      backendUrl.port +
-      "/ws/chat/" +
-      room +
-      "/";
-    this.socketRef = new WebSocket(path);
-    this.$emit("socket-created", this.socketRef);
-  },
-  mounted() {
-    this.$refs.input.focus();
-    this.shareable = typeof navigator.share === "function";
-    this.socketRef.onopen = () => {
-      console.log("WebSocket open");
-      if (!this.token) {
-        setTimeout(
-          function () {
-            this.socketRef.send(
-              JSON.stringify({ command: "fetch_messages", token: this.token })
-            );
-            this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-            this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-            this.socketRef.send(
-              JSON.stringify({ command: "fetch_user_notifications" })
-            );
-            this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-            this.socketRef.send(
-              JSON.stringify({
-                command: "fetch_display_name"
-              })
-            );
-          }.bind(this),
-          1000
-        );
-      } else {
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_messages", token: this.token })
-        );
-        this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-        this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_user_notifications" })
-        );
-        this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_display_name" })
-        );
-      }
-    };
-    this.socketRef.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if ("members" in data) {
-        this.roomMembers = JSON.parse(data.members);
-      } else if ("refresh_members" in data) {
-        this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-      } else if ("notifications" in data) {
-        this.notifications = JSON.parse(data.notifications);
-      } else if ("requests" in data) {
-        this.joinRequests = JSON.parse(data.requests);
-      } else if ("refresh_notifications" in data) {
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_user_notifications" })
-        );
-      } else if ("refresh_allowed_status" in data) {
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_allowed_status", token: this.token })
-        );
-      } else if ("allowed" in data) {
-        this.userAllowed = true;
-      } else if ("not_allowed" in data) {
-        this.userAllowed = false;
-      } else if ("privacy" in data) {
-        this.privateRoom = data.privacy;
-        if (this.privateRoom) {
-          this.socketRef.send(
-            JSON.stringify({ command: "fetch_join_requests" })
-          );
-        }
-      } else if ("refresh_join_requests" in data) {
-        this.socketRef.send(JSON.stringify({ command: "fetch_join_requests" }));
-      } else if ("refresh_privacy" in data) {
-        this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-      } else if ("new_room_name" in data) {
-        this.roomName = data.new_room_name;
-      } else if ("refresh_room_name" in data) {
-        this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
-      } else if ("refresh_chat" in data) {
-        if (this.$refs.log) {
-          this.$refs.log.value = "";
-        }
-        this.socketRef.send(
-          JSON.stringify({ command: "fetch_messages", token: this.token })
-        );
-      } else if ("new_display_name" in data) {
-        this.username = data.new_display_name;
-        if (
-          this.user.providerData[0] &&
-          (this.username === this.user.providerData[0].displayName ||
-            this.username === this.user.providerData[0].email ||
-            this.username === this.user.providerData[0].phoneNumber ||
-            this.username === this.user.providerData[0].uid)
-        ) {
-          this.username =
-            this.user.providerData[0].displayName ||
-            this.user.providerData[0].email ||
-            this.user.providerData[0].phoneNumber ||
-            this.user.providerData[0].uid;
-          this.socketRef.send(
-            JSON.stringify({
-              command: "update_display_name",
-              name: this.username
-            })
-          );
-        } else if (
-          this.user.providerData[0] &&
-          (this.username === this.user.displayName ||
-            this.username === this.user.email ||
-            this.username === this.user.phoneNumber ||
-            this.username === this.user.uid)
-        ) {
-          this.username =
-            this.user.providerData[0].displayName ||
-            this.user.displayName ||
-            this.user.providerData[0].email ||
-            this.user.email ||
-            this.user.providerData[0].phoneNumber ||
-            this.user.phoneNumber ||
-            this.user.providerData[0].uid ||
-            this.user.uid;
-          this.socketRef.send(
-            JSON.stringify({
-              command: "update_display_name",
-              name: this.username
-            })
-          );
-        } else if (
-          this.username === this.user.displayName ||
-          this.username === this.user.email ||
-          this.username === this.user.phoneNumber ||
-          this.username === this.user.uid
-        ) {
-          this.username =
-            this.user.displayName ||
-            this.user.email ||
-            this.user.phoneNumber ||
-            this.user.uid;
-          this.socketRef.send(
-            JSON.stringify({
-              command: "update_display_name",
-              name: this.username
-            })
-          );
-        }
-      } else {
-        this.$refs.log.value += data.message + "\n";
-      }
-    };
-    this.socketRef.onerror = (e) => {
-      console.log(e.message);
-    };
-    this.socketRef.onclose = () => {
-      console.log("WebSocket closed");
-    };
+    if (!this.token) {
+      setTimeout(
+        function () {
+          const path =
+            ws_scheme +
+            "://" +
+            backendUrl.hostname +
+            ":" +
+            backendUrl.port +
+            "/ws/chat/" +
+            room +
+            "/?token=" +
+            this.token;
+          this.socketRef = new WebSocket(path);
+          this.$emit("socket-created", this.socketRef);
+          this.$refs.input.focus();
+          this.shareable = typeof navigator.share === "function";
+          this.socketRef.onopen = () => {
+            console.log("WebSocket open");
+            if (!this.token) {
+              setTimeout(
+                function () {
+                  this.socketRef.send(
+                    JSON.stringify({
+                      command: "fetch_messages",
+                      token: this.token,
+                    })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({ command: "fetch_room_name" })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({ command: "fetch_privacy" })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({ command: "fetch_user_notifications" })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({ command: "fetch_members" })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({
+                      command: "fetch_display_name",
+                    })
+                  );
+                }.bind(this),
+                1000
+              );
+            } else {
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_messages", token: this.token })
+              );
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_room_name" })
+              );
+              this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_user_notifications" })
+              );
+              this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_display_name" })
+              );
+            }
+          };
+          this.socketRef.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if ("members" in data) {
+              this.roomMembers = JSON.parse(data.members);
+            } else if ("refresh_members" in data) {
+              this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+            } else if ("notifications" in data) {
+              this.notifications = JSON.parse(data.notifications);
+            } else if ("requests" in data) {
+              this.joinRequests = JSON.parse(data.requests);
+            } else if ("refresh_notifications" in data) {
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_user_notifications" })
+              );
+            } else if ("refresh_allowed_status" in data) {
+              this.socketRef.send(
+                JSON.stringify({
+                  command: "fetch_allowed_status",
+                  token: this.token,
+                })
+              );
+            } else if ("allowed" in data) {
+              this.userAllowed = true;
+            } else if ("not_allowed" in data) {
+              this.userAllowed = false;
+            } else if ("privacy" in data) {
+              this.privateRoom = data.privacy;
+              if (this.privateRoom) {
+                this.socketRef.send(
+                  JSON.stringify({ command: "fetch_join_requests" })
+                );
+              }
+            } else if ("refresh_join_requests" in data) {
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_join_requests" })
+              );
+            } else if ("refresh_privacy" in data) {
+              this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+            } else if ("new_room_name" in data) {
+              this.roomName = data.new_room_name;
+            } else if ("refresh_room_name" in data) {
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_room_name" })
+              );
+            } else if ("refresh_chat" in data) {
+              if (this.$refs.log) {
+                this.$refs.log.value = "";
+              }
+              this.socketRef.send(
+                JSON.stringify({ command: "fetch_messages", token: this.token })
+              );
+            } else if ("new_display_name" in data) {
+              this.username = data.new_display_name;
+              if (
+                this.user.providerData[0] &&
+                (this.username === this.user.providerData[0].displayName ||
+                  this.username === this.user.providerData[0].email ||
+                  this.username === this.user.providerData[0].phoneNumber ||
+                  this.username === this.user.providerData[0].uid)
+              ) {
+                this.username =
+                  this.user.providerData[0].displayName ||
+                  this.user.providerData[0].email ||
+                  this.user.providerData[0].phoneNumber ||
+                  this.user.providerData[0].uid;
+                this.socketRef.send(
+                  JSON.stringify({
+                    command: "update_display_name",
+                    name: this.username,
+                  })
+                );
+              } else if (
+                this.user.providerData[0] &&
+                (this.username === this.user.displayName ||
+                  this.username === this.user.email ||
+                  this.username === this.user.phoneNumber ||
+                  this.username === this.user.uid)
+              ) {
+                this.username =
+                  this.user.providerData[0].displayName ||
+                  this.user.displayName ||
+                  this.user.providerData[0].email ||
+                  this.user.email ||
+                  this.user.providerData[0].phoneNumber ||
+                  this.user.phoneNumber ||
+                  this.user.providerData[0].uid ||
+                  this.user.uid;
+                this.socketRef.send(
+                  JSON.stringify({
+                    command: "update_display_name",
+                    name: this.username,
+                  })
+                );
+              } else if (
+                this.username === this.user.displayName ||
+                this.username === this.user.email ||
+                this.username === this.user.phoneNumber ||
+                this.username === this.user.uid
+              ) {
+                this.username =
+                  this.user.displayName ||
+                  this.user.email ||
+                  this.user.phoneNumber ||
+                  this.user.uid;
+                this.socketRef.send(
+                  JSON.stringify({
+                    command: "update_display_name",
+                    name: this.username,
+                  })
+                );
+              }
+            } else {
+              this.$refs.log.value += data.message + "\n";
+            }
+          };
+          this.socketRef.onerror = (e) => {
+            console.log(e.message);
+          };
+          this.socketRef.onclose = () => {
+            console.log("WebSocket closed");
+          };
+        }.bind(this),
+        1000
+      );
+    }
   },
 };
 </script>

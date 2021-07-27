@@ -22,7 +22,7 @@ export default {
   props: {
     socketRef: {
       type: WebSocket,
-      required: true,
+      required: false,
     },
     notifications: {
       type: Array,

@@ -35,7 +35,7 @@ export default {
     },
     socketRef: {
       type: WebSocket,
-      required: true,
+      required: false,
     },
   },
   methods: {

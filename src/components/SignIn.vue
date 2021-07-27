@@ -15,7 +15,7 @@ export default {
   props: {
     socketRef: {
       type: WebSocket,
-      required: true,
+      required: false,
     },
   },
   data() {
@@ -49,34 +49,44 @@ export default {
         this.$emit("new-user", this.user);
         user.getIdToken().then((token) => {
           this.token = token;
-          this.showSignIn = this.user.isAnonymous;
           this.$emit("new-token", this.token);
-          if (this.socketRef.readyState === 1) {
-            this.socketRef.send(
-              JSON.stringify({ command: "join_room", token: this.token })
-            );
-            this.socketRef.send(
-              JSON.stringify({ command: "fetch_user_notifications" })
-            );
-            this.socketRef.send(
-              JSON.stringify({
-                command: "fetch_display_name",
-              })
-            );
-          } else {
+          this.showSignIn = this.user.isAnonymous;
+          if (!this.socketRef) {
             setTimeout(
               function () {
-                this.socketRef.send(
-                  JSON.stringify({ command: "join_room", token: this.token })
-                );
-                this.socketRef.send(
-                  JSON.stringify({ command: "fetch_user_notifications" })
-                );
-                this.socketRef.send(
-                  JSON.stringify({
-                    command: "fetch_display_name",
-                  })
-                );
+                if (this.socketRef.readyState === 1) {
+                  this.socketRef.send(
+                    JSON.stringify({ command: "join_room", token: this.token })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({ command: "fetch_user_notifications" })
+                  );
+                  this.socketRef.send(
+                    JSON.stringify({
+                      command: "fetch_display_name",
+                    })
+                  );
+                } else {
+                  setTimeout(
+                    function () {
+                      this.socketRef.send(
+                        JSON.stringify({
+                          command: "join_room",
+                          token: this.token,
+                        })
+                      );
+                      this.socketRef.send(
+                        JSON.stringify({ command: "fetch_user_notifications" })
+                      );
+                      this.socketRef.send(
+                        JSON.stringify({
+                          command: "fetch_display_name",
+                        })
+                      );
+                    }.bind(this),
+                    1000
+                  );
+                }
               }.bind(this),
               1000
             );
