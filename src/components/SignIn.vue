@@ -81,11 +81,11 @@ export default {
                         })
                       );
                     }.bind(this),
-                    1000
+                    750
                   );
                 }
               }.bind(this),
-              1000
+              750
             );
           }
         });

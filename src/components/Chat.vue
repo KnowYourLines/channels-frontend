@@ -308,7 +308,7 @@ export default {
             console.log("WebSocket closed");
           };
         }.bind(this),
-        1000
+        750
       );
     }
   },
