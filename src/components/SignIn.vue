@@ -2,14 +2,17 @@
   <div>
     <div class="column-center">
       <section v-if="showSignIn" id="firebaseui-auth-container"></section>
-      <button v-if="shareable" @click="share">Share</button>
+      <div class="column-center">
+        <button v-if="shareable" @click="share">Share</button>
+      </div>
+      <div class="column-right">
+        <button @click="signOut">Sign Out</button>
+      </div>
+      <div class="column-left">
+        <button @click="createNewRoom">New room</button>
+      </div>
     </div>
-    <div class="column-right">
-      <button @click="signOut">Sign Out</button>
-    </div>
-    <div class="column-left">
-      <button @click="createNewRoom">New room</button>
-    </div>
+
     <br /><br />
   </div>
 </template>
