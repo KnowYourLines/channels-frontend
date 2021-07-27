@@ -55,9 +55,7 @@ export default {
             setTimeout(
               function () {
                 if (this.socketRef.readyState === 1) {
-                  this.socketRef.send(
-                    JSON.stringify({ command: "join_room", token: this.token })
-                  );
+                  this.socketRef.send(JSON.stringify({ command: "join_room" }));
                   this.socketRef.send(
                     JSON.stringify({ command: "fetch_user_notifications" })
                   );
@@ -72,7 +70,6 @@ export default {
                       this.socketRef.send(
                         JSON.stringify({
                           command: "join_room",
-                          token: this.token,
                         })
                       );
                       this.socketRef.send(

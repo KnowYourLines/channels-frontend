@@ -176,51 +176,16 @@ export default {
           this.shareable = typeof navigator.share === "function";
           this.socketRef.onopen = () => {
             console.log("WebSocket open");
-            if (!this.token) {
-              setTimeout(
-                function () {
-                  this.socketRef.send(
-                    JSON.stringify({
-                      command: "fetch_messages",
-                      token: this.token,
-                    })
-                  );
-                  this.socketRef.send(
-                    JSON.stringify({ command: "fetch_room_name" })
-                  );
-                  this.socketRef.send(
-                    JSON.stringify({ command: "fetch_privacy" })
-                  );
-                  this.socketRef.send(
-                    JSON.stringify({ command: "fetch_user_notifications" })
-                  );
-                  this.socketRef.send(
-                    JSON.stringify({ command: "fetch_members" })
-                  );
-                  this.socketRef.send(
-                    JSON.stringify({
-                      command: "fetch_display_name",
-                    })
-                  );
-                }.bind(this),
-                1000
-              );
-            } else {
-              this.socketRef.send(
-                JSON.stringify({ command: "fetch_messages", token: this.token })
-              );
-              this.socketRef.send(
-                JSON.stringify({ command: "fetch_room_name" })
-              );
-              this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
-              this.socketRef.send(
-                JSON.stringify({ command: "fetch_user_notifications" })
-              );
-              this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
-              this.socketRef.send(
-                JSON.stringify({ command: "fetch_display_name" })
-              );
-            }
+            this.socketRef.send(JSON.stringify({ command: "fetch_messages" }));
+            this.socketRef.send(JSON.stringify({ command: "fetch_room_name" }));
+            this.socketRef.send(JSON.stringify({ command: "fetch_privacy" }));
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_user_notifications" })
+            );
+            this.socketRef.send(JSON.stringify({ command: "fetch_members" }));
+            this.socketRef.send(
+              JSON.stringify({ command: "fetch_display_name" })
+            );
           };
           this.socketRef.onmessage = (e) => {
             const data = JSON.parse(e.data);
@@ -240,7 +205,6 @@ export default {
               this.socketRef.send(
                 JSON.stringify({
                   command: "fetch_allowed_status",
-                  token: this.token,
                 })
               );
             } else if ("allowed" in data) {
@@ -271,7 +235,7 @@ export default {
                 this.$refs.log.value = "";
               }
               this.socketRef.send(
-                JSON.stringify({ command: "fetch_messages", token: this.token })
+                JSON.stringify({ command: "fetch_messages" })
               );
             } else if ("new_display_name" in data) {
               this.username = data.new_display_name;
