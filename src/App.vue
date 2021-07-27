@@ -1,48 +1,42 @@
 <template>
-  <LoadingScreen v-if="isLoading" />
-  <div v-else>
-    <SignIn
-      @new-user="newUser"
-      @socket-created="socketCreated"
-      @new-room-members="newRoomMembers"
-      @new-notifications="newNotifications"
-      @new-join-requests="newJoinRequests"
-      @new-allowed-status="newAllowedStatus"
-      @new-room-name="newRoomName"
-      @clear-chat="clearChat"
-      @new-username="newUsername"
-      @new-message="newMessage"
-      @new-privacy="newPrivacy"
-    />
-    <Toggle v-if="userAllowed" v-model="privateRoom" @change="updatePrivacy">
-      <template v-slot:label="{ checked, classList }">
-        <span :class="classList.label">{{
-          checked ? "Private" : "Public"
-        }}</span>
-      </template>
-    </Toggle>
-    <br /><br />
-    <Chat
-      ref="chat"
-      :socketRef="socket"
-      :user="user"
-      :roomMembers="roomMembers"
-      :joinRequests="joinRequests"
-      :notifications="notifications"
-      :privateRoom="privateRoom"
-      :userAllowed="userAllowed"
-      v-model:username.lazy.trim="username"
-      v-model:roomName.lazy.trim="roomName"
-      @new-join-requests="newJoinRequests"
-    />
-  </div>
+  <SignIn
+    @new-user="newUser"
+    @socket-created="socketCreated"
+    @new-room-members="newRoomMembers"
+    @new-notifications="newNotifications"
+    @new-join-requests="newJoinRequests"
+    @new-allowed-status="newAllowedStatus"
+    @new-room-name="newRoomName"
+    @clear-chat="clearChat"
+    @new-username="newUsername"
+    @new-message="newMessage"
+    @new-privacy="newPrivacy"
+  />
+  <Toggle v-if="userAllowed" v-model="privateRoom" @change="updatePrivacy">
+    <template v-slot:label="{ checked, classList }">
+      <span :class="classList.label">{{ checked ? "Private" : "Public" }}</span>
+    </template>
+  </Toggle>
+  <br /><br />
+  <Chat
+    ref="chat"
+    :socketRef="socket"
+    :user="user"
+    :roomMembers="roomMembers"
+    :joinRequests="joinRequests"
+    :notifications="notifications"
+    :privateRoom="privateRoom"
+    :userAllowed="userAllowed"
+    v-model:username.lazy.trim="username"
+    v-model:roomName.lazy.trim="roomName"
+    @new-join-requests="newJoinRequests"
+  />
 </template>
 
 <script>
 import Toggle from "@vueform/toggle";
 import Chat from "./components/Chat.vue";
 import SignIn from "./components/SignIn.vue";
-import LoadingScreen from "./components/LoadingScreen.vue";
 
 export default {
   name: "App",
@@ -50,13 +44,11 @@ export default {
     Toggle,
     Chat,
     SignIn,
-    LoadingScreen,
   },
   data() {
     return {
       socket: null,
       user: {},
-      isLoading: true,
       joinRequests: [],
       notifications: [],
       roomMembers: [],
@@ -115,11 +107,6 @@ export default {
         this.$refs.chat.$refs.log.value = "";
       }
     },
-  },
-  mounted() {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 1);
   },
 };
 </script>

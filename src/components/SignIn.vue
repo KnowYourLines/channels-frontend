@@ -54,7 +54,6 @@ export default {
           this.$nextTick(() => {
             this.ui.start("#firebaseui-auth-container", this.uiConfig);
           });
-          alert("Successfully signed out.");
         })
         .catch((err) => {
           console.log(err);
@@ -79,6 +78,20 @@ export default {
       let url = new URL(window.location.href);
       url.searchParams.set("room", room);
       window.location.href = url;
+    }
+    const firebaseConfig = {
+      apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+      authDomain: process.env.VUE_APP_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.VUE_APP_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.VUE_APP_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.VUE_APP_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.VUE_APP_FIREBASE_APP_ID,
+      measurementId: process.env.VUE_APP_FIREBASE_MEASUREMENT_ID,
+    };
+    firebase.initializeApp(firebaseConfig);
+    this.ui = firebaseui.auth.AuthUI.getInstance();
+    if (!this.ui) {
+      this.ui = new firebaseui.auth.AuthUI(firebase.auth());
     }
     firebase.auth().onAuthStateChanged((user) => {
       console.log(user);
